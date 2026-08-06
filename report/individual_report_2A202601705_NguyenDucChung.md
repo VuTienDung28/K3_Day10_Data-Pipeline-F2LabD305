@@ -6,10 +6,10 @@
 
 | Thông tin         | Nội dung                  |
 | ------------------ | -------------------------- |
-| Họ và tên       | [Họ và tên]             |
-| MSSV               | [MSSV]                     |
-| Khóa/Lớp         | [K3 hoặc K4]              |
-| Tên nhóm         | [Tên hoặc mã nhóm]     |
+| Họ và tên       | Nguyễn Đức Chung             |
+| MSSV               | 2A202601705                     |
+| Khóa/Lớp         | K3               |
+| Tên nhóm         | F2-D305     |
 | Vai trò chính    | [Vai trò]                 |
 | Repository         | [Đường dẫn repository] |
 | Ngày hoàn thành | [YYYY-MM-DD]               |
