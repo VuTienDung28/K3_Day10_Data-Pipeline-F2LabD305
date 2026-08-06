@@ -7,7 +7,7 @@
 | Họ và tên | Lê Minh Ngọc |
 | MSSV | 2A202601471 |
 | Khóa/Lớp | K3 |
-| Tên nhóm | F2-D305 |
+| Tên nhóm | F2-LabD305 |
 | Vai trò chính | Thành viên 4 — Corruption & Repair Owner |
 | Repository | <https://github.com/VuTienDung28/K3_Day10_Data-Pipeline-F2LabD305> |
 | Ngày hoàn thành | 2026-08-06 |
@@ -108,7 +108,7 @@ Một quyết định liên quan là rebuild `text_for_embedding` thay vì cố 
 - **Cách xác minh:** `test_corruption_rejects_data_outside_clean_contract` đã pass.
 - **Điều học được:** Data contract nên được kiểm tra tại ranh giới module để lỗi xuất hiện sớm và có thông báo hữu ích.
 
-Blocker tích hợp hiện tại: nhánh làm việc chưa có baseline/corruption flow end-to-end hoàn chỉnh, vì vậy chưa có metrics RAG thật cho ba trạng thái. Phần này phải được cập nhật từ artifact của thành viên 5 sau khi tích hợp, không được tự suy đoán số liệu.
+Sau tích hợp, baseline và corruption flow đã chạy end-to-end. `corruption_log.json` ghi 18 events, gồm 3 events cho mỗi loại corruption; các metrics và quality/freshness artifacts của ba trạng thái đã được tạo để đối chiếu.
 
 ## 7. Hiểu biết về luồng end-to-end
 
@@ -124,20 +124,20 @@ Corrupted dataset phải được re-index và đánh giá bằng đúng test se
 
 | Metric/signal | Baseline | Corrupted | Repaired | Nhận xét cá nhân |
 | --- | ---: | ---: | ---: | --- |
-| `retrieval_hit_rate` | Chưa có | Chưa có | Chưa có | Chờ artifact tích hợp từ cùng evaluation set |
-| `mean_token_f1` | Chưa có | Chưa có | Chưa có | Không tự đặt số liệu khi flow chưa chạy |
-| `judge_accuracy` | Chưa có | Chưa có | Chưa có | Phụ thuộc LLM provider và evaluation flow |
-| `mean_judge_score` | Chưa có | Chưa có | Chưa có | Cần đọc từ `data/results/*_metrics.json` |
-| Quality checks | Chưa có artifact | Kỳ vọng FAIL | Chưa có artifact | Kỳ vọng không thay thế cho kết quả chạy thật |
-| Freshness status | Chưa có artifact | Kỳ vọng STALE | Chưa có artifact | Stale date được lùi 10 năm nhưng vẫn cần report thực tế |
+| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Ba ground-truth documents bị drop khiến corrupted không thể retrieve đúng ID. |
+| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Corrupted answer mất nội dung chuẩn; repair phục hồi. |
+| `judge_accuracy` | 1.0 | 0.0 | 1.0 | LLM judge xác nhận impact, không dùng fallback. |
+| `mean_judge_score` | 5 | 1 | 5 | Corruption giảm mạnh và repair trở lại baseline. |
+| Quality checks | PASS | FAIL | PASS | Corrupted có 6 failed error checks; repaired có 0. |
+| Freshness status | FRESH | STALE | FRESH | Ba record bị lùi 3.650 ngày làm corrupted stale. |
 
-### Kết luận từ bằng chứng hiện có
+### Kết luận từ bằng chứng thực tế
 
-Ở cấp module, corrupted output đã được chứng minh có summary rỗng, noise marker, title ngắn, stale `age_days` và duplicate `paper_id`; input baseline không bị mutation. Chưa thể kết luận mức giảm của agent vì chưa có corrupted metrics end-to-end.
+`corruption_log.json` ghi 18 events: mỗi loại corruption tác động 3 record. Corrupted quality phát hiện 6 rows thuộc duplicate IDs, 3 title ngắn, 3 summary rỗng/ngắn, 3 summary có noise và 3 stale rows. Các signal này khớp trực tiếp với failure modes đã tạo trong module.
 
-Kịch bản có khả năng ảnh hưởng retrieval rõ nhất là drop latest record vì document đã bị xóa hoàn toàn khỏi corpus: nếu evaluation set tham chiếu document đó, hệ thống không thể retrieve đúng ID. Blank/noisy summary và truncate title làm giảm tín hiệu semantic; mức ảnh hưởng cụ thể phải được xác nhận bằng metrics.
+`drop_latest_record` ảnh hưởng retrieval rõ nhất trong lần chạy này vì ba paper bị xóa chính là ba document được evaluation set tham chiếu. Vì vậy `retrieval_hit_rate` giảm từ 1.0 xuống 0.0; token F1 và judge metrics cũng giảm. Sau khi repair từ raw records và re-index, bốn metrics trở về baseline, quality PASS và freshness FRESH.
 
-Một kết quả đáng chú ý trong thiết kế là số dòng output có thể bằng input do số dòng bị drop bằng số dòng duplicate. Vì vậy chỉ kiểm tra volume sẽ bỏ sót lỗi; cần kết hợp uniqueness và đối chiếu document identity.
+Một kết quả đáng chú ý là input và output đều có 24 dòng vì 3 dòng bị drop được bù bởi 3 dòng duplicate. `row_count` vẫn PASS trong khi uniqueness FAIL, chứng minh volume riêng lẻ không đủ phát hiện corruption; phải kết hợp document identity và quality dimensions.
 
 ## 9. Điều học được và hướng cải thiện
 

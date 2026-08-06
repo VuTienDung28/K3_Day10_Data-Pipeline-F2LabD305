@@ -7,7 +7,7 @@
 | Họ và tên | Đào Thị Trang |
 | MSSV | 2A202601809 |
 | Khóa/Lớp | K3 |
-| Tên nhóm | F2 |
+| Tên nhóm | F2-LabD305 |
 | Vai trò chính | Role 2 — Cleaning & Test Set |
 | Repository | https://github.com/VuTienDung28/K3_Day10_Data-Pipeline-F2LabD305 |
 | Ngày hoàn thành | 2026-08-06 |
@@ -128,18 +128,20 @@ Quality checks kiểm tra tính đầy đủ, hợp lệ và duy nhất của d�
 
 | Metric/signal | Baseline | Corrupted | Repaired | Nhận xét cá nhân |
 | --- | ---: | ---: | ---: | --- |
-| `retrieval_hit_rate` | Chưa có | Chưa có | Chưa có | Repo chưa có metrics artifact để xác minh |
-| `mean_token_f1` | Chưa có | Chưa có | Chưa có | Cần cập nhật sau khi Role 5 chạy hai pipeline |
-| `judge_accuracy` | Chưa có | Chưa có | Chưa có | Không tự ghi số liệu khi chưa có JSON kết quả |
-| `mean_judge_score` | Chưa có | Chưa có | Chưa có | Không tự ghi số liệu khi chưa có JSON kết quả |
-| Quality checks | Chưa có | Chưa có | Chưa có | Chờ artifact từ Role 3 và pipeline tích hợp |
-| Freshness status | Chưa có | Chưa có | Chưa có | Chờ artifact từ Role 3 và pipeline tích hợp |
+| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Cùng test set cho thấy thay đổi đến từ corpus chứ không phải câu hỏi. |
+| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Clean/repaired answer khớp ground truth; corrupted answer không còn khớp. |
+| `judge_accuracy` | 1.0 | 0.0 | 1.0 | LLM judge chạy qua OpenRouter `o4-mini`, 0/9 lượt fallback. |
+| `mean_judge_score` | 5 | 1 | 5 | Answer quality phục hồi hoàn toàn sau khi build lại từ raw. |
+| Quality checks | PASS | FAIL | PASS | Corrupted vi phạm uniqueness, title/summary validity, completeness và freshness. |
+| Freshness status | FRESH | STALE | FRESH | Ba stale dates làm corrupted stale; clean lại khôi phục ngày nguồn. |
 
 ### Kết luận từ số liệu
 
-Tại thời điểm viết báo cáo, repo chưa có `baseline_metrics.json`, `corrupted_metrics.json`, `repaired_metrics.json` hoặc quality/freshness report. Vì vậy chưa đủ bằng chứng để kết luận corruption nào làm agent giảm mạnh nhất hay mức phục hồi sau repair. Phần này cần được cập nhật từ artifact thực tế sau khi Role 3 và Role 5 hoàn thành tích hợp.
+`drop_latest_record` ảnh hưởng trực tiếp nhất tới bộ test hiện tại vì ba evaluation samples tham chiếu ba paper mới nhất đã bị xóa khỏi corrupted corpus. Vì document IDs không còn trong index, `retrieval_hit_rate` giảm từ 1.0 xuống 0.0; answer metrics cũng giảm theo. Các mutation blank/noisy summary và truncated title đồng thời tạo quality signals rõ ràng, giúp phân biệt lỗi dữ liệu với lỗi model.
 
-Chuỗi kiểm chứng dự kiến là: corruption làm rỗng summary/xóa document → quality check và retrieval hit thay đổi → answer metric giảm; sau đó cleaning lại từ raw snapshot → schema và quality signal phục hồi → retrieval/answer metrics được đo lại trên đúng test set cũ.
+Repair chạy lại chính cleaning contract trên raw snapshot, khôi phục 24 records, ID, title, summary, publication date và `text_for_embedding`. Trên cùng `data/eval/test_set.json`, retrieval và answer metrics trở về baseline. Điều này xác nhận clean schema và ground-truth document identity ổn định là điều kiện để comparison có ý nghĩa.
+
+Kết quả khác kỳ vọng là cả 24 record nguồn đều thiếu category, nên baseline/repaired vẫn có một warning `categories_not_null`. Đây là warning chứ không phải error; nhóm không tự suy đoán category và không tạo category question có ground truth rỗng.
 
 ## 9. Điều học được và hướng cải thiện
 

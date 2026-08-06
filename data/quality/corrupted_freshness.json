@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-08-06T06:14:31.922545+00:00",
+  "status": "stale",
+  "latest_published": "2026-07-10",
+  "oldest_published": "2016-03-17",
+  "stale_rows": 3,
+  "stale_paper_ids": [
+    "10.3390/buildings16132637",
+    "10.32473/flairs.39.1.141782",
+    "10.70121/001c.158711"
+  ],
+  "future_rows": 0,
+  "invalid_date_rows": 0,
+  "total_rows": 24,
+  "freshness_threshold_days": 180,
+  "max_age_days": 3794,
+  "mean_age_days": 543.0,
+  "is_fresh": false
+}

@@ -1,164 +1,152 @@
-# Member Role Report — Day 10: Data Pipeline & Data Observability
-
-> Mỗi thành viên trong nhóm tự hoàn thành mẫu này để báo cáo đúng vai trò, phần việc và mức hiểu của mình. Không sao chép nguyên báo cáo chung hoặc báo cáo của thành viên khác. Thay nội dung trong dấu `[ ]` và xóa các dòng hướng dẫn không cần thiết trước khi nộp.
+# Báo cáo cá nhân — Day 10: Data Pipeline & Data Observability
 
 ## 1. Thông tin cá nhân
 
-| Thông tin         | Nội dung                  |
-| ------------------ | -------------------------- |
-| Họ và tên       | Nguyễn Đức Chung             |
-| MSSV               | 2A202601705                     |
-| Khóa/Lớp         | K3               |
-| Tên nhóm         | F2-D305     |
-| Vai trò chính    | [Vai trò]                 |
-| Repository         | [Đường dẫn repository] |
-| Ngày hoàn thành | [YYYY-MM-DD]               |
+| Thông tin | Nội dung |
+| --- | --- |
+| Họ và tên | Nguyễn Đức Chung |
+| MSSV | 2A202601705 |
+| Khóa/Lớp | K3 |
+| Tên nhóm | F2-LabD305 |
+| Vai trò chính | Observability |
+| Repository | https://github.com/VuTienDung28/K3_Day10_Data-Pipeline-F2LabD305 |
+| Ngày hoàn thành | 2026-08-06 |
 
 ## 2. Vai trò và phạm vi công việc
 
 ### Phần việc sở hữu
 
-| Module/deliverable | File/hàm phụ trách | Input nhận vào | Output bàn giao  | Trạng thái                                 |
-| ------------------ | --------------------- | ---------------- | ----------------- | -------------------------------------------- |
-| [Phần việc]      | [File/hàm]           | [Input]          | [Output/artifact] | [Hoàn thành/Một phần/Chưa hoàn thành] |
-| [Phần việc]      | [File/hàm]           | [Input]          | [Output/artifact] | [Hoàn thành/Một phần/Chưa hoàn thành] |
-
-Chỉ nhận ownership cho phần bạn trực tiếp thực hiện. Liên hệ rõ phần việc của bạn với đầu vào, đầu ra và các thành viên phụ thuộc vào phần đó.
+| Module/deliverable | File/hàm phụ trách | Input nhận vào | Output bàn giao | Trạng thái |
+| --- | --- | --- | --- | --- |
+| Data quality checks | `src/observability/quality.py` — `run_data_quality_checks()` | Clean, corrupted hoặc repaired DataFrame và `Settings` | JSON quality report có checks, dimensions, severity, observed/expected và overall status | Hoàn thành |
+| Freshness monitoring | `src/observability/quality.py` — `build_freshness_report()` | DataFrame có publication dates, freshness threshold và output path | Freshness JSON gồm latest/oldest date, stale/invalid/future rows và trạng thái | Hoàn thành |
+| Markdown reporting | `src/observability/reporting.py` — `generate_phase1_report()`, `generate_corruption_report()` | Source summary, metrics, quality và freshness payloads | Baseline report và bảng so sánh baseline/corrupted/repaired | Hoàn thành |
+| Observability tests | `tests/test_observability.py` | Fixtures clean, corrupted, dropped và malformed | Regression coverage cho checks, freshness, report values và comparison deltas | Hoàn thành |
 
 ### Việc hỗ trợ ngoài phạm vi chính
 
-| Hoạt động                         | Thành viên/module được hỗ trợ | Kết quả                    |
-| ------------------------------------ | ------------------------------------ | ---------------------------- |
-| [Debug/tích hợp/tài liệu] | [Tên hoặc module] | [Kết quả và bằng chứng] |
+| Hoạt động | Thành viên/module được hỗ trợ | Kết quả |
+| --- | --- | --- |
+| Thống nhất corruption signals | Corruption & Repair | Noise marker, title/summary threshold, duplicates và stale dates được quality checks phát hiện đúng. |
+| Bàn giao report contract | Integration & Comparison | Pipeline truyền đủ quality/freshness của baseline, corrupted và repaired vào comparison report. |
 
 ## 3. Kết quả theo vai trò
 
-| Nhiệm vụ đã thực hiện | File/hàm/artifact liên quan | Kết quả bàn giao       | Cách xác minh         |
-| --------------------------- | ----------------------------- | ------------------------- | ----------------------- |
-| [Mô tả cụ thể] | [Đường dẫn file] | [Artifact/metrics/report] | [Lệnh/artifact] |
-| [Mô tả cụ thể] | [Đường dẫn file] | [Artifact/metrics/report] | [Lệnh/artifact] |
+| Nhiệm vụ đã thực hiện | File/hàm/artifact liên quan | Kết quả bàn giao | Cách xác minh |
+| --- | --- | --- | --- |
+| Xây dựng quality suite | `src/observability/quality.py`, `data/quality/*_quality.json` | 17 checks bao phủ volume, schema, completeness, uniqueness, validity, consistency và freshness | Đọc `checks`, `failed_checks`, `warning_checks` trong JSON |
+| Tạo freshness reports | `data/quality/freshness_report.json`, `corrupted_freshness.json`, `repaired_freshness.json` | Baseline FRESH, corrupted STALE, repaired FRESH | Đối chiếu `stale_rows`, `max_age_days`, `is_fresh` |
+| Tạo baseline Markdown | `data/reports/phase1_report.md` | Source/config, metrics, quality table, freshness và conclusion | Đọc report và đối chiếu JSON artifacts |
+| Tạo comparison Markdown | `data/reports/corruption_report.md` | Metrics delta, recovery, quality/freshness ba trạng thái và evidence-based conclusion | Test report rendering và đối chiếu `data/results/*_metrics.json` |
+| Xử lý malformed input sạch | `tests/test_observability.py` | Missing schema tạo quality FAIL; freshness UNKNOWN thay vì crash | `pytest -q tests/test_observability.py` |
 
-Nêu một output cụ thể mà phần việc của bạn tạo ra hoặc giúp xác minh:
-
-[Mô tả artifact, metric, report hoặc kết quả tích hợp.]
+Output cụ thể: corrupted quality có 6 failed error checks và 1 warning; repaired quality có 0 failed error checks và 1 warning. Corrupted freshness có 3 stale rows, trong khi baseline và repaired có 0.
 
 ## 4. Giải thích phần kỹ thuật đã thực hiện
 
 ### Vấn đề cần giải quyết
 
-[Phần của bạn giải quyết vấn đề gì trong pipeline?]
+Pipeline chạy không lỗi chưa chứng minh dữ liệu đủ tốt cho RAG. Cần có các tín hiệu xác định dataset có đủ schema, ID duy nhất, nội dung hợp lệ, derived embedding text đồng bộ và publication dates còn mới. Các tín hiệu phải được lưu thành artifacts để audit và giải thích metric thay đổi.
 
 ### Cách triển khai
 
-[Mô tả thuật toán, quy tắc dữ liệu, orchestration hoặc quyết định chính. Không chỉ chép lại tên hàm.]
+`run_data_quality_checks()` tạo từng check dưới một contract thống nhất gồm `name`, `dimension`, `severity`, `success`, `observed`, `expected` và danh sách sample IDs. Error checks quyết định overall PASS/FAIL; category completeness là warning vì Crossref có thể không cung cấp `subject` dù record vẫn dùng được.
+
+Quality suite kiểm tra row count và required columns; null/duplicate IDs; title/summary null và minimum length; noise markers; embedding text null và đồng bộ với title/summary hiện tại; publication date và `age_days`; freshness threshold; consistency giữa date và age; category completeness. Payload cuối cùng ghi số check pass/fail/warning và được lưu dưới `data/quality/`.
+
+`build_freshness_report()` tính tuổi trực tiếp từ `published` thay vì tin hoàn toàn vào `age_days`. Dataset chỉ FRESH khi có dữ liệu, không có ngày invalid/future và không có dòng vượt ngưỡng 180 ngày. Reporting module escape nội dung Markdown, format số, dựng quality table và chỉ kết luận dựa trên metrics/signals được cung cấp.
 
 ### Input, output và contract
 
-| Thành phần                   | Mô tả                                     |
-| ------------------------------ | ------------------------------------------- |
-| Input                          | [Schema, artifact hoặc tham số]           |
-| Output                         | [Schema, artifact hoặc giá trị trả về] |
-| Module phụ thuộc             | [Module/file liên quan]                    |
-| Module sử dụng output        | [Module/file liên quan]                    |
-| Điều kiện lỗi cần xử lý | [Trường hợp thực tế]                   |
+| Thành phần | Mô tả |
+| --- | --- |
+| Input quality | `pandas.DataFrame`, `Settings`, tên report |
+| Input freshness | DataFrame, freshness threshold và output path |
+| Input reporting | Metrics dictionaries, quality/freshness payloads và source summary |
+| Output | JSON quality/freshness artifacts và Markdown reports |
+| Module phụ thuộc | `pandas`, `core.config.Settings`, `core.utils.now_utc/write_json/write_text` |
+| Module sử dụng output | `phase1.py`, `corruption_flow.py`, group/individual reports và người đánh giá |
+| Điều kiện lỗi cần xử lý | DataFrame thiếu cột, date invalid, dataset rỗng, check list/metric thiếu và ký tự Markdown đặc biệt |
 
 ### Cách xác minh
 
 ```bash
-[Ghi lệnh thực tế đã chạy]
+.venv/Scripts/python.exe -m pytest -q tests/test_observability.py
+.venv/Scripts/python.exe -m pytest -q
 ```
 
-- **Kết quả mong đợi:** [Mô tả.]
-- **Kết quả thực tế:** [Mô tả.]
-- **Artifact/log:** [Đường dẫn; không chứa secret.]
+- **Kết quả mong đợi:** Clean data PASS/FRESH; corrupted signals bị phát hiện; malformed input không crash; report có metrics/deltas thật.
+- **Kết quả thực tế:** `6 passed` cho observability/corruption focused tests và `8 passed` cho full suite.
+- **Artifact/log:** `data/quality/`, `data/reports/phase1_report.md`, `data/reports/corruption_report.md`.
 
 ## 5. Một quyết định kỹ thuật quan trọng
 
-- **Bối cảnh:** [Vấn đề hoặc lựa chọn cần quyết định.]
-- **Các phương án đã cân nhắc:** [Ít nhất hai phương án.]
-- **Phương án đã chọn:** [Lựa chọn.]
-- **Lý do:** [Trade-off về correctness, data quality, reproducibility, cost hoặc độ phức tạp.]
-- **Bằng chứng quyết định phù hợp:** [Metric, artifact hoặc kết quả thử nghiệm.]
+- **Bối cảnh:** Cả 24 Crossref records đều thiếu `categories_joined`. Nếu coi check này là error, baseline và repaired sẽ FAIL dù ingestion/cleaning không thể tạo metadata mà source không cung cấp.
+- **Các phương án đã cân nhắc:** Bỏ check; coi thiếu category là error; hoặc giữ check với severity warning.
+- **Phương án đã chọn:** Giữ `categories_not_null` dưới dạng warning và không dùng nó để quyết định overall status.
+- **Lý do:** Vẫn quan sát được completeness gap mà không đánh đồng optional source metadata với lỗi làm dataset không sử dụng được. Việc tự suy đoán category cũng sẽ làm ground truth không đáng tin cậy.
+- **Bằng chứng quyết định phù hợp:** Baseline/repaired đều có 0 failed error checks và 1 warning; pipeline vẫn đánh giá được ba question types có ground truth thật. Reports hiển thị warning thay vì che mất tín hiệu.
 
 ## 6. Một lỗi hoặc blocker đã xử lý
 
-- **Triệu chứng/lỗi nguyên văn:** [Che toàn bộ secret trước khi ghi.]
-- **Lệnh hoặc bước tái hiện:** [Lệnh/bước.]
-- **Nguyên nhân gốc:** [Root cause, không chỉ mô tả triệu chứng.]
-- **Cách xử lý:** [Thay đổi cụ thể.]
-- **Cách xác minh sau khi sửa:** [Lệnh và kết quả.]
-- **Điều học được:** [Bài học kỹ thuật.]
-
-Nếu chưa xử lý xong:
-
-- **Phạm vi bị ảnh hưởng:** [Module/artifact.]
-- **Những gì đã loại trừ:** [Các giả thuyết đã kiểm tra.]
-- **Bước tiếp theo:** [Hành động có thể kiểm chứng.]
+- **Triệu chứng:** Corruption thay title hoặc summary nhưng derived `text_for_embedding` có thể vẫn giữ nội dung cũ; khi đó quality signal và index không phản ánh cùng một trạng thái dữ liệu.
+- **Bước tái hiện:** Corrupt title/summary rồi kiểm tra chuỗi embedding có chứa giá trị hiện tại hay không.
+- **Nguyên nhân gốc:** Derived field không tự đồng bộ khi cột nguồn bị mutation.
+- **Cách xử lý:** Bổ sung checks `embedding_contains_title` và `embedding_contains_summary`; phối hợp corruption module rebuild `text_for_embedding` sau mutation. `summary_chars` cũng được cập nhật theo summary hiện tại.
+- **Cách xác minh sau khi sửa:** Corrupted quality phát hiện đúng các lỗi có chủ đích nhưng hai consistency checks của embedding vẫn PASS; tests kiểm tra embedding chứa title/summary hiện tại.
+- **Điều học được:** Observability không chỉ kiểm tra null/schema mà còn phải kiểm tra quan hệ giữa source fields và derived fields.
 
 ## 7. Hiểu biết về luồng end-to-end
 
-Giải thích ngắn gọn bằng lời của bạn:
-
-1. Dữ liệu đi từ Crossref đến vector index như thế nào?
-2. Evaluation set và ground-truth document IDs dùng để đo retrieval/answer quality ra sao?
-3. Quality checks khác freshness monitoring ở điểm nào trong bài lab?
-4. Vì sao phải dùng cùng test set cho baseline, corrupted và repaired?
-5. Repair được xem là thành công dựa trên artifact và metric nào?
-
-**Câu trả lời:**
-
-[Viết câu trả lời tại đây.]
+1. Crossref response được lưu nguyên và parse thành raw records. Cleaning chuẩn hóa records, tính freshness fields và tạo `text_for_embedding`; MiniLM sinh vectors và ChromaDB lưu index.
+2. Evaluation set liên kết từng câu hỏi với ground truth và document IDs. Retrieval hit đo ID đúng trong top-k; token F1 và LLM judge đo answer quality.
+3. Quality checks đo completeness, uniqueness, validity, consistency và volume; freshness monitoring đo độ mới theo publication dates. Một dataset có thể đúng schema nhưng stale hoặc fresh nhưng chứa duplicate/noise.
+4. Baseline, corrupted và repaired dùng cùng test set để metric delta phản ánh trạng thái dữ liệu. Nếu đổi câu hỏi, comparison sẽ bị nhiễu.
+5. Repair thành công khi build lại từ raw artifact, quality/freshness phục hồi và metrics trên cùng test set trở lại gần baseline. Lần chạy hiện tại cho thấy repaired phục hồi hoàn toàn bốn metrics chính.
 
 ## 8. Phân tích kết quả
 
 ### Metrics chính
 
-| Metric/signal          | Baseline | Corrupted | Repaired | Nhận xét của cá nhân |
-| ---------------------- | -------: | --------: | -------: | ------------------------- |
-| `retrieval_hit_rate` |      [ ] |       [ ] |      [ ] | [Nhận xét]              |
-| `mean_token_f1`      |      [ ] |       [ ] |      [ ] | [Nhận xét]              |
-| `judge_accuracy`     |      [ ] |       [ ] |      [ ] | [Nhận xét]              |
-| `mean_judge_score`   |      [ ] |       [ ] |      [ ] | [Nhận xét]              |
-| Quality checks         |      [ ] |       [ ] |      [ ] | [Nhận xét]              |
-| Freshness status       |      [ ] |       [ ] |      [ ] | [Nhận xét]              |
+| Metric/signal | Baseline | Corrupted | Repaired | Nhận xét cá nhân |
+| --- | ---: | ---: | ---: | --- |
+| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Retrieval impact đồng thời với quality failures; repair phục hồi. |
+| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Answer overlap giảm hoàn toàn ở corrupted state. |
+| `judge_accuracy` | 1.0 | 0.0 | 1.0 | OpenRouter `o4-mini` judge chạy thật, 0/9 fallback. |
+| `mean_judge_score` | 5 | 1 | 5 | Chênh lệch 4 điểm và phục hồi đầy đủ. |
+| Quality checks | PASS | FAIL | PASS | Failed error checks: 0 → 6 → 0; warning checks luôn là 1. |
+| Freshness status | FRESH | STALE | FRESH | Stale rows: 0 → 3 → 0. |
 
 ### Kết luận từ số liệu
 
-Hoàn thành hai chuỗi nguyên nhân–bằng chứng sau:
+1. Corruption tạo 3 duplicate IDs, 3 title ngắn, 3 summary rỗng/ngắn, 3 noise markers và 3 stale dates; quality chuyển PASS → FAIL, freshness chuyển FRESH → STALE, còn retrieval/answer metrics giảm từ 1.0/5 xuống 0.0/1.
+2. Repair chạy lại cleaning từ raw records; failed error checks về 0, stale rows về 0 và metrics trở lại baseline.
 
-1. [Data corruption] → [quality/freshness signal thay đổi] → [agent metric thay đổi].
-2. [Repair action] → [quality/freshness signal phục hồi] → [agent metric phục hồi hoặc chưa phục hồi].
+`drop_latest_record` tác động trực tiếp nhất tới evaluation vì ba paper bị drop là ground-truth documents của ba samples. Observability artifacts không chỉ chứng minh dataset xấu mà còn chỉ ra các failure dimensions đi kèm metric degradation.
 
-Corruption nào ảnh hưởng rõ nhất và vì sao?
-
-[Phân tích dựa trên số liệu.]
-
-Kết quả nào khác với kỳ vọng ban đầu?
-
-[Nêu kết quả, giả thuyết và cách đã kiểm tra.]
+Kết quả đáng chú ý là row count vẫn bằng 24 do ba dropped rows được bù bởi ba duplicates. Check volume PASS nhưng uniqueness FAIL, cho thấy cần dùng nhiều quality dimensions thay vì một chỉ số đơn lẻ. Một warning category còn tồn tại ở cả baseline và repaired vì source thiếu metadata; report giữ warning này để phản ánh giới hạn thực tế.
 
 ## 9. Điều học được và hướng cải thiện
 
 ### Ba điều quan trọng nhất
 
-1. [Điều học được về data pipeline.]
-2. [Điều học được về data quality/observability.]
-3. [Điều học được về ảnh hưởng của data đến RAG agent.]
+1. Quality checks cần mô tả failure bằng observed value và sample IDs để có thể truy nguyên, không chỉ trả boolean.
+2. Freshness phải được tính lại từ timestamp nguồn và không nên tin hoàn toàn một derived age field.
+3. Data signals và agent metrics phải được đọc cùng nhau để hình thành kết luận nhân quả có bằng chứng.
 
 ### Nếu có thêm thời gian
 
-[Nêu một cải thiện cụ thể, lý do và cách đo cải thiện đó.]
+Tôi sẽ version quality contract và lưu fingerprint của dataset/test set trong reports. Sau đó chạy nhiều corruption severities để đo số failed checks và metric degradation theo tỷ lệ 5%, 10%, 20%. Cải thiện được xác minh bằng artifacts có version/fingerprint và bảng trend qua nhiều runs.
 
 ## 10. Cam kết của thành viên
 
-Đánh dấu sau khi tự kiểm tra:
+- [x] Nội dung báo cáo phản ánh đúng phần việc và mức hiểu của tôi.
+- [x] Tôi có thể giải thích luồng end-to-end, không chỉ module mình phụ trách.
+- [x] Mọi kết luận về kết quả đều có artifact hoặc metric để đối chiếu.
+- [x] Tôi không ghi “đã chạy thành công” cho phần chưa được kiểm chứng.
+- [x] Báo cáo không chứa `.env`, API key, token hoặc secret.
+- [x] Báo cáo này không phải bản sao nguyên văn của báo cáo nhóm hoặc báo cáo thành viên khác.
 
-- [ ] Nội dung báo cáo phản ánh đúng phần việc và mức hiểu của tôi.
-- [ ] Tôi có thể giải thích luồng end-to-end, không chỉ module mình phụ trách.
-- [ ] Mọi kết luận về kết quả đều có artifact hoặc metric để đối chiếu.
-- [ ] Tôi không ghi “đã chạy thành công” cho phần chưa được kiểm chứng.
-- [ ] Báo cáo không chứa `.env`, API key, token hoặc secret.
-- [ ] Báo cáo này không phải bản sao nguyên văn của báo cáo nhóm hoặc báo cáo thành viên khác.
+**Họ và tên:** Nguyễn Đức Chung
 
-**Họ và tên:** [Họ và tên]
-**Ngày xác nhận:** [YYYY-MM-DD]
+**Ngày xác nhận:** 2026-08-06

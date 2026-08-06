@@ -13,7 +13,11 @@ def ensure_parent(path: Path) -> None:
 
 def write_json(path: Path, payload: Any) -> None:
     ensure_parent(path)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def read_json(path: Path) -> Any:
@@ -22,12 +26,12 @@ def read_json(path: Path) -> Any:
 
 def write_csv(df, path: Path) -> None:
     ensure_parent(path)
-    df.to_csv(path, index=False)
+    df.to_csv(path, index=False, lineterminator="\n")
 
 
 def write_text(path: Path, text: str) -> None:
     ensure_parent(path)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(text, encoding="utf-8", newline="\n")
 
 
 def now_utc() -> datetime:

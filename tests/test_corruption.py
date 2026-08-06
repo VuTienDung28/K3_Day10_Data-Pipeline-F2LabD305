@@ -27,6 +27,7 @@ def _clean_dataframe(row_count: int = 20) -> pd.DataFrame:
                 "age_days": index,
                 "authors_joined": f"Author {index}",
                 "categories_joined": "computer science",
+                "summary_chars": len(summary),
                 "text_for_embedding": (
                     f"Title: {title} | Authors: Author {index} | Summary: {summary}"
                 ),
@@ -51,13 +52,14 @@ def test_corruption_is_reproducible_auditable_and_does_not_mutate_input(tmp_path
     assert first["summary"].eq("").any()
     assert first["summary"].str.contains(NOISE_MARKER, regex=False).any()
     assert first["title"].str.len().lt(15).any()
-    assert pd.to_numeric(first["age_days"]).gt(3650).any()
+    assert float(first["age_days"].max()) > 3650
     assert all(
         title in text and summary in text
         for title, summary, text in zip(
             first["title"], first["summary"], first["text_for_embedding"], strict=False
         )
     )
+    assert first["summary_chars"].tolist() == first["summary"].str.len().tolist()
 
     log = json.loads(first_log.read_text(encoding="utf-8"))
     assert log["input_rows"] == 20

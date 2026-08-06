@@ -200,6 +200,8 @@ def corrupt_clean_dataframe(df: pd.DataFrame, output_log_path) -> pd.DataFrame:
         corrupted = pd.concat([corrupted, duplicate_rows], ignore_index=True)
 
     _rebuild_embedding_text(corrupted)
+    if "summary_chars" in corrupted.columns:
+        corrupted["summary_chars"] = corrupted["summary"].fillna("").astype(str).str.len()
     corrupted = corrupted.reset_index(drop=True)
 
     counts: dict[str, int] = {}
