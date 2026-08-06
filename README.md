@@ -108,15 +108,17 @@ macOS/Linux:
 cp .env.example .env
 ```
 
-Mặc định project dùng Gemini:
+Cấu hình mẫu dùng OpenRouter:
 
 ```dotenv
-LLM_PROVIDER=gemini
-LLM_MODEL=gemini-2.5-flash
-GOOGLE_API_KEY=your_key_here
+LLM_PROVIDER=openrouter
+LLM_MODEL=o4-mini
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+RUN_RAGAS=
 ```
 
-Project cũng hỗ trợ `openai`, `anthropic`, `openrouter`, `ollama` và OpenAI-compatible custom endpoint. Chỉ điền credential của provider bạn sử dụng.
+Project cũng hỗ trợ `openai`, `gemini`, `anthropic`, `ollama` và OpenAI-compatible custom endpoint. Chỉ điền credential của provider bạn sử dụng. Đặt `RUN_RAGAS=1` khi cần chạy bốn metric Ragas trên bộ câu trả lời agent; Ragas dùng cùng `OPENROUTER_API_KEY` và phát sinh thêm API call/chi phí. Embedding MiniLM chạy cục bộ, không cần embedding API key.
 
 Không commit `.env`, API key hoặc secret lên GitHub.
 
@@ -206,15 +208,19 @@ Sau baseline, tối thiểu cần kiểm tra:
 - `data/clean/`: cleaned CSV/JSON
 - `data/embeddings/`: embedding manifest
 - `data/eval/`: evaluation test set
-- `data/results/baseline_metrics.json`: metrics của baseline
+- `data/results/baseline_metrics.json`: metrics deterministic của baseline
+- `data/results/baseline_agent_metrics.json`: metrics agent, judge provenance và Ragas
+- `data/results/baseline_run.json`: run ID, timestamp và test-set fingerprint
 - `data/quality/`: data quality và freshness report
 - `data/reports/phase1_report.md`: báo cáo baseline
 
 Sau corruption flow, kiểm tra thêm:
 
-- corrupted/repaired dataset và metrics trong `data/`
+- corrupted/repaired dataset, deterministic metrics và agent metrics trong `data/`
 - `data/results/corruption_log.json`
+- `data/results/corruption_run.json`
 - `data/reports/corruption_report.md`
+- `data/reports/corruption_metrics.svg`
 
 Các chỉ số trọng tâm:
 
@@ -232,7 +238,7 @@ Mục tiêu không chỉ là pipeline chạy xong, mà phải có bằng chứng
 | ----------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | `requires a different Python`                       | Python nằm ngoài khoảng 3.11-3.13                 | Chạy`python --version`, chọn Python phù hợp rồi tạo lại `.venv`          |
 | `No module named 'pipelines'`                       | Mới cài`requirements.txt`, chưa cài project    | Trong`.venv`, chạy `python -m pip install -e .`                                |
-| `GOOGLE_API_KEY is required`                        | Provider mặc định là Gemini nhưng chưa có key | Điền`GOOGLE_API_KEY` hoặc đổi `LLM_PROVIDER` sang provider đã cấu hình |
+| `OPENROUTER_API_KEY is required`                    | Cấu hình mẫu dùng OpenRouter nhưng chưa có key | Điền `OPENROUTER_API_KEY` hoặc đổi `LLM_PROVIDER` sang provider đã cấu hình |
 | `NotImplementedError: Student task...`              | Chạm tới phần starter chưa implement             | Mở đúng file được ghi trong traceback và hoàn thành`TODO(student)`       |
 | Crossref trả`429`/`503`                          | Rate limit hoặc lỗi tạm thời                     | Implement retry/backoff theo yêu cầu trong`src/ingestion/crossref.py`           |
 | Chạy corruption flow nhưng thiếu baseline artifact | Chưa chạy xong Pha 1                               | Chạy baseline và kiểm tra`data/results/baseline_metrics.json` trước          |

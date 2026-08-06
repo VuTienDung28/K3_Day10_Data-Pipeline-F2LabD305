@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import re
 
 from core.config import Settings
-from core.utils import first_sentence
 from retrieval.index import LocalEmbeddingIndex, SearchResult
 
 
@@ -26,7 +25,7 @@ def _extract_answer(question: str, top_result: SearchResult) -> str:
         return metadata["published"]
     if "what categories" in lowered:
         return metadata["categories_joined"]
-    return first_sentence(metadata["summary"])
+    return f"{top_result.title}: {metadata['summary']}"
 
 
 def answer_question(question: str, settings: Settings, index: LocalEmbeddingIndex, top_k: int | None = None) -> AnswerResult:

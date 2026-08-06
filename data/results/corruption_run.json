@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "run_id": "b3be2e01-1df5-4bed-bf3b-220f9459c0af",
+  "started_at": "2026-08-06T08:24:29.959712+00:00",
+  "completed_at": "2026-08-06T08:33:21.589931+00:00",
+  "provider": "openrouter",
+  "model": "o4-mini",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "test_set_sha256": "7c31f69a37d9c7dff9d49e500603084024675b849924bf94c8d25f2167781a8a",
+  "states": {
+    "baseline": {
+      "schema_version": 2,
+      "evaluation_mode": "agent",
+      "samples": 6,
+      "test_set_sha256": "7c31f69a37d9c7dff9d49e500603084024675b849924bf94c8d25f2167781a8a",
+      "retrieval_hit_rate": 1.0,
+      "mean_token_f1": 0.32270730122392527,
+      "judge_accuracy": 1.0,
+      "mean_judge_score": 5,
+      "judge_provider": "openrouter",
+      "judge_model": "o4-mini",
+      "judge_calls": 6,
+      "fallback_count": 0,
+      "ragas": {
+        "status": "passed",
+        "provider": "openrouter",
+        "model": "o4-mini",
+        "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "samples": 6,
+        "metrics": {
+          "answer_relevancy": 0.6447051652776783,
+          "context_precision": 0.6666666666,
+          "context_recall": 0.6666666666666666,
+          "faithfulness": 0.6962041226747109
+        }
+      }
+    },
+    "corrupted": {
+      "schema_version": 2,
+      "evaluation_mode": "agent",
+      "samples": 6,
+      "test_set_sha256": "7c31f69a37d9c7dff9d49e500603084024675b849924bf94c8d25f2167781a8a",
+      "retrieval_hit_rate": 0.5,
+      "mean_token_f1": 0.08934789490345045,
+      "judge_accuracy": 0.3333333333333333,
+      "mean_judge_score": 2.3333333333333335,
+      "judge_provider": "openrouter",
+      "judge_model": "o4-mini",
+      "judge_calls": 6,
+      "fallback_count": 0,
+      "ragas": {
+        "status": "passed",
+        "provider": "openrouter",
+        "model": "o4-mini",
+        "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "samples": 6,
+        "metrics": {
+          "answer_relevancy": 0.7498427757093198,
+          "context_precision": 0.16666666665,
+          "context_recall": 0.16666666666666666,
+          "faithfulness": 0.7583333333333333
+        }
+      }
+    },
+    "repaired": {
+      "schema_version": 2,
+      "evaluation_mode": "agent",
+      "samples": 6,
+      "test_set_sha256": "7c31f69a37d9c7dff9d49e500603084024675b849924bf94c8d25f2167781a8a",
+      "retrieval_hit_rate": 1.0,
+      "mean_token_f1": 0.29452934811640685,
+      "judge_accuracy": 1.0,
+      "mean_judge_score": 5,
+      "judge_provider": "openrouter",
+      "judge_model": "o4-mini",
+      "judge_calls": 6,
+      "fallback_count": 0,
+      "ragas": {
+        "status": "passed",
+        "provider": "openrouter",
+        "model": "o4-mini",
+        "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "samples": 6,
+        "metrics": {
+          "answer_relevancy": 0.6008304725288701,
+          "context_precision": 0.6666666666,
+          "context_recall": 0.6666666666666666,
+          "faithfulness": 0.6466049382716049
+        }
+      }
+    }
+  }
+}

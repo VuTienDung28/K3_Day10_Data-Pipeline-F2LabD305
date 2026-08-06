@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "run_id": "5b01fdc1-d473-4ebc-af70-712570b4dcbe",
+  "started_at": "2026-08-06T08:19:03.612778+00:00",
+  "completed_at": "2026-08-06T08:23:28.392470+00:00",
+  "provider": "openrouter",
+  "model": "o4-mini",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "test_set_sha256": "7c31f69a37d9c7dff9d49e500603084024675b849924bf94c8d25f2167781a8a",
+  "artifacts": {
+    "reference_metrics": "data\\results\\baseline_metrics.json",
+    "agent_metrics": "data\\results\\baseline_agent_metrics.json",
+    "report": "data\\reports\\phase1_report.md"
+  }
+}

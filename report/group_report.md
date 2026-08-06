@@ -21,11 +21,11 @@
 
 ## 2. Tóm tắt kết quả
 
-Nhóm đã hoàn thành pipeline end-to-end từ Crossref đến RAG evaluation và data observability. Baseline lưu raw response/raw records, làm sạch 24 papers, tạo MiniLM embeddings, xây ChromaDB index, giữ evaluation set 3 câu hỏi và tạo metrics, answer, quality, freshness cùng Markdown report. Baseline đạt `retrieval_hit_rate`, `mean_token_f1`, `judge_accuracy` bằng 1.0 và `mean_judge_score` bằng 5; quality PASS và freshness FRESH.
+Nhóm đã hoàn thành pipeline end-to-end từ Crossref đến RAG evaluation và data observability. Baseline lưu raw response/raw records, làm sạch 24 papers, tạo MiniLM embeddings, xây ChromaDB index và dùng evaluation set 6 câu hỏi semantic (2 summary, 2 authors, 2 date). Bằng chứng được tách thành deterministic reference và real LangChain agent; baseline agent đạt `retrieval_hit_rate=1.0`, `judge_accuracy=1.0`, `mean_judge_score=5`, quality PASS và freshness FRESH.
 
-Corruption flow tạo 18 events tái lập với seed 42: drop records mới nhất, blank/noisy summary, title ngắn, stale dates và duplicates. Ba ground-truth papers bị drop làm toàn bộ ba metric tỷ lệ giảm xuống 0.0, judge score giảm xuống 1, quality FAIL với 6 failed error checks và freshness STALE với 3 stale rows. Repair không chỉnh ngược corrupted rows mà đọc lại raw snapshot, chạy cleaning/index/evaluation trên cùng test set. Repaired phục hồi quality PASS, freshness FRESH và toàn bộ metrics về mức baseline.
+Corruption flow tạo 18 events tái lập với seed 42: drop records mới nhất, blank/noisy summary, title ngắn, stale dates và duplicates. Agent metrics giảm xuống `retrieval_hit_rate=0.5`, `judge_accuracy=0.3333`, `mean_judge_score=2.3333`; quality FAIL với 6 failed error checks và freshness STALE với 3 stale rows. Repair không chỉnh ngược corrupted rows mà đọc lại raw snapshot, chạy cleaning/index/evaluation trên cùng test set. Repaired phục hồi agent hit rate và judge accuracy về 1.0, quality PASS và freshness FRESH.
 
-OpenRouter `o4-mini` thực hiện 9/9 lượt judge, không dùng heuristic fallback. Giới hạn chính là evaluation set chỉ có 3 samples và Crossref không cung cấp categories cho corpus hiện tại; Ragas được giữ ở chế độ tùy chọn để tránh tăng thời gian/chi phí chạy mặc định.
+Final artifacts ghi 36 judge verdicts qua hai evaluation modes và ba trạng thái, tất cả dùng OpenRouter `o4-mini` với `fallback_count=0`. Ragas chạy trên cả ba agent answer sets bằng cùng OpenRouter key và MiniLM local; đủ bốn metric hữu hạn. Giới hạn nguồn còn lại là Crossref không cung cấp categories cho corpus hiện tại, được giữ thành warning thay vì tự tạo metadata.
 
 ## 3. Kiến trúc và luồng dữ liệu
 
@@ -70,7 +70,7 @@ Crossref REST API
 | Retrieval `top_k` | 4 |
 | Freshness threshold | 180 ngày |
 | Corruption seed/rate | 42 / 10% |
-| Ragas | Không bật; `RUN_RAGAS` mặc định tắt |
+| Ragas | Bật cho evidence run (`RUN_RAGAS=1`); dùng OpenRouter LLM và MiniLM local |
 
 API key chỉ nằm trong `.env` local, không xuất hiện trong source, reports hoặc Git.
 
@@ -105,9 +105,9 @@ Tests:
 
 | Lệnh | Trạng thái | Thời điểm UTC | Bằng chứng |
 | --- | --- | --- | --- |
-| Baseline pipeline | Thành công, exit 0 | 2026-08-06 06:03 | `data/reports/phase1_report.md`, baseline metrics/answers/quality/freshness |
-| Corruption flow | Thành công, exit 0 | 2026-08-06 06:03 | `data/reports/corruption_report.md`, corruption log và corrupted/repaired artifacts |
-| Full tests | 8 passed | 2026-08-06 | `pytest -q` output |
+| Baseline pipeline | Thành công, exit 0 | 2026-08-06 08:23 | `baseline_run.json`, baseline deterministic/agent/Ragas artifacts |
+| Corruption flow | Thành công, exit 0 | 2026-08-06 08:33 | `corruption_run.json`, corruption log và corrupted/repaired artifacts |
+| Full tests | 15 passed | 2026-08-06 | `pytest -q` output |
 
 ## 5. Ingestion, cleaning và data contract
 
@@ -154,15 +154,16 @@ Clean artifact có 16 trường, 24 rows, publication dates từ 2026-02-12 đ�
 
 | Thành phần | Cấu hình thực tế |
 | --- | --- |
-| Số câu hỏi | 3 |
-| `question_type` | `summary`, `authors`, `date` |
+| Số câu hỏi | 6 (2 summary, 2 authors, 2 date) |
+| Question design | Cue gồm một phần title và abstract; không chứa full exact title |
 | Ground-truth document ID | Lấy trực tiếp từ `paper_id` của clean row |
 | Embedding model | `sentence-transformers/all-MiniLM-L6-v2` |
 | Vector store/collections | ChromaDB: `papers-baseline`, `papers-corrupted`, `papers-repaired` |
 | Retrieval `top_k` | 4 |
 | LLM provider/model | OpenRouter / `o4-mini` |
+| Evaluation modes | Deterministic reference và real tool-using agent |
 | Shared test set | `data/eval/test_set.json` |
-| Test-set SHA-256 | `e89671a152d221d170c28a0d6d547f1d600e93cd87c54bc2a2e6595e295f7cd5` |
+| Test-set SHA-256 | `7c31f69a37d9c7dff9d49e500603084024675b849924bf94c8d25f2167781a8a` |
 
 Cùng một test set được dùng cho baseline, corrupted và repaired để câu hỏi, ground truth và document IDs không đổi. Vì vậy metric delta phản ánh thay đổi corpus/index thay vì thay đổi sample. Category question không được tạo vì cả 24 source records thiếu category; nhóm không tự bịa ground truth.
 
@@ -175,22 +176,24 @@ Cùng một test set được dùng cho baseline, corrupted và repaired để c
 | Raw response/records | `data/raw/` | Có | Response gốc và 24 flat records |
 | Cleaned dataset | `data/clean/papers_clean.csv/json` | Có | 24 records |
 | Embedding manifest | `data/embeddings/papers_embeddings.json` | Có | MiniLM baseline manifest |
-| Evaluation set | `data/eval/test_set.json` | Có | 3 samples |
-| Baseline metrics/answers | `data/results/baseline_*.json` | Có | 3 samples, LLM judge thật |
+| Evaluation set | `data/eval/test_set.json` | Có | 6 semantic samples, shared SHA-256 |
+| Baseline metrics/answers | `data/results/baseline_*.json` | Có | Deterministic và real-agent artifacts, 6 samples mỗi mode |
+| Run provenance | `data/results/baseline_run.json`, `corruption_run.json` | Có | Run ID, timestamps, provider/model và test-set hash |
+| Visualization | `data/reports/corruption_metrics.svg` | Có | So sánh real-agent metrics ba trạng thái |
 | Quality/freshness | `data/quality/baseline_quality.json`, `freshness_report.json` | Có | PASS/FRESH |
 | Baseline report | `data/reports/phase1_report.md` | Có | Khớp JSON artifacts |
 
 ### Baseline metrics
 
-| Metric | Giá trị | Diễn giải |
-| --- | ---: | --- |
-| `retrieval_hit_rate` | 1.0 | Ground-truth document xuất hiện trong top-k cho 3/3 samples |
-| `mean_token_f1` | 1.0 | Answers khớp hoàn toàn ground truth theo token set |
-| `judge_accuracy` | 1.0 | LLM judge đánh giá đúng 3/3 answers |
-| `mean_judge_score` | 5 | Điểm judge trung bình tối đa |
-| Ragas | N/A | Mặc định tắt; bật `RUN_RAGAS=1` cho lượt chạy chậm/tốn chi phí hơn |
+| Metric | Deterministic reference | Real agent | Diễn giải |
+| --- | ---: | ---: | --- |
+| `retrieval_hit_rate` | 1.0000 | 1.0000 | Ground-truth document xuất hiện trong top-k cho 6/6 samples |
+| `mean_token_f1` | 0.6667 | 0.3227 | Agent trả lời đầy đủ hơn ground truth nên token-set overlap thấp hơn judge correctness |
+| `judge_accuracy` | 0.6667 | 1.0000 | Real agent trả lời đúng 6/6 theo OpenRouter judge |
+| `mean_judge_score` | 3.6667 | 5.0000 | Real agent đạt điểm judge tối đa |
+| Judge fallback | 0/6 | 0/6 | Không dùng heuristic fallback |
 
-Cả 3 baseline judge calls dùng OpenRouter `o4-mini`; không có heuristic fallback.
+Ragas trên baseline agent: `answer_relevancy=0.6447`, `context_precision=0.6667`, `context_recall=0.6667`, `faithfulness=0.6962`; trạng thái `passed`, mọi giá trị hữu hạn.
 
 ## 8. Data quality và freshness
 
@@ -225,7 +228,7 @@ Freshness được tính lại từ `published`, không tin hoàn toàn vào der
 
 | Corruption | Cách tạo | Records | Quality signal thực tế | Tác động | Repair |
 | --- | --- | ---: | --- | --- | --- |
-| Drop latest records | Loại 3 rows mới nhất | 3 | Identity/coverage thay đổi nhưng row count bị duplicates bù | Ba ground-truth docs biến mất; retrieval hit 0.0 | Re-clean raw snapshot |
+| Drop latest records | Loại 3 rows mới nhất | 3 | Identity/coverage thay đổi nhưng row count bị duplicates bù | Ba ground-truth docs biến mất; aggregate agent hit rate còn 0.5 | Re-clean raw snapshot |
 | Blank summary | Đặt summary rỗng | 3 | `summary_not_null`, `summary_min_length` FAIL | Mất nội dung answer/embedding | Khôi phục summary từ raw |
 | Inject summary noise | Thêm corruption marker | 3 | `summary_noise_markers` FAIL | Semantic content bị nhiễu | Khôi phục summary từ raw |
 | Truncate title | Giữ 8 ký tự đầu | 3 | `title_min_length` FAIL | Title signal suy giảm | Khôi phục title từ raw |
@@ -236,28 +239,39 @@ Corruption log tại `data/results/corruption_log.json` có schema version 1.0, 
 
 ## 10. So sánh baseline, corrupted và repaired
 
-| Metric/signal | Baseline | Corrupted | Repaired | Corruption delta | Repair delta | Recovery |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | -1.0 | +1.0 | 100% |
-| `mean_token_f1` | 1.0 | 0.0 | 1.0 | -1.0 | +1.0 | 100% |
-| `judge_accuracy` | 1.0 | 0.0 | 1.0 | -1.0 | +1.0 | 100% |
-| `mean_judge_score` | 5 | 1 | 5 | -4 | +4 | 100% |
-| Quality status | PASS | FAIL | PASS | 6 failed errors | -6 failed errors | Phục hồi |
-| Freshness status | FRESH | STALE | FRESH | +3 stale rows | -3 stale rows | Phục hồi |
+### Real-agent metrics
+
+| Metric/signal | Baseline | Corrupted | Repaired | Corruption delta | Repair delta |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `retrieval_hit_rate` | 1.0000 | 0.5000 | 1.0000 | -0.5000 | +0.5000 |
+| `mean_token_f1` | 0.3227 | 0.0893 | 0.2945 | -0.2334 | +0.2052 |
+| `judge_accuracy` | 1.0000 | 0.3333 | 1.0000 | -0.6667 | +0.6667 |
+| `mean_judge_score` | 5.0000 | 2.3333 | 5.0000 | -2.6667 | +2.6667 |
+| Quality status | PASS | FAIL | PASS | 6 failed errors | -6 failed errors |
+| Freshness status | FRESH | STALE | FRESH | +3 stale rows | -3 stale rows |
+
+### Ragas trên real-agent answers
+
+| Metric | Baseline | Corrupted | Repaired |
+| --- | ---: | ---: | ---: |
+| `answer_relevancy` | 0.6447 | 0.7498 | 0.6008 |
+| `context_precision` | 0.6667 | 0.1667 | 0.6667 |
+| `context_recall` | 0.6667 | 0.1667 | 0.6667 |
+| `faithfulness` | 0.6962 | 0.7583 | 0.6466 |
 
 Hai chuỗi nguyên nhân–bằng chứng:
 
-1. Drop ba latest ground-truth documents và tạo completeness/validity/uniqueness/freshness errors → quality FAIL, freshness STALE → retrieval, token F1 và judge accuracy cùng giảm từ 1.0 xuống 0.0; judge score giảm từ 5 xuống 1.
-2. Repair từ raw snapshot → failed errors 6 xuống 0, stale rows 3 xuống 0 → bốn metrics chính trở lại đúng baseline.
+1. Drop ba trong sáu ground-truth documents và tạo completeness/validity/uniqueness/freshness errors → quality FAIL, freshness STALE → agent hit rate giảm 1.0 xuống 0.5, judge accuracy giảm 1.0 xuống 0.3333; Ragas context precision/recall giảm 0.6667 xuống 0.1667.
+2. Repair từ raw snapshot → failed errors 6 xuống 0, stale rows 3 xuống 0 → hit rate/judge metrics và context precision/recall trở lại baseline. Answer relevancy và faithfulness có biến thiên do LLM generation/judging, nên không được diễn giải như metric recovery đơn điệu.
 
-Kết quả phù hợp kỳ vọng và được đối chiếu giữa `corruption_log.json`, quality/freshness JSON, metrics/answers JSON và comparison report.
+Kết quả được đối chiếu giữa `corruption_log.json`, quality/freshness JSON, deterministic/agent metrics, answer traces, run manifests, comparison report và SVG visualization.
 
 ## 11. Vấn đề tích hợp quan trọng
 
-- **Triệu chứng:** Pipeline dùng OpenAI trực tiếp với `o4-mini` vẫn thoát mã 0 nhưng 9/9 evaluator calls rơi vào heuristic fallback.
-- **Nguyên nhân:** `ChatOpenAI` truyền `temperature=0.0`; OpenAI endpoint của `o4-mini` chỉ chấp nhận temperature mặc định. Evaluator bắt exception để pipeline tiếp tục nên exit code không phản ánh lỗi LLM.
-- **Cách xử lý:** Cấu hình provider OpenRouter với model `o4-mini`, giữ key trong `.env`, cập nhật `.env.example` không chứa secret và kiểm tra answer artifacts thay vì chỉ exit code.
-- **Cách xác minh:** Chạy lại hai entrypoints; provider/model thực tế là `openrouter/o4-mini`, cả 9 judge reasonings không chứa fallback marker và metrics/reports được tái sinh.
+- **Triệu chứng:** Pipeline dùng OpenAI trực tiếp với `o4-mini` vẫn thoát mã 0 nhưng evaluator calls rơi vào heuristic fallback.
+- **Nguyên nhân:** `ChatOpenAI` truyền `temperature=0.0`; endpoint trực tiếp từ chối tham số và evaluator bắt exception để pipeline tiếp tục nên exit code không phản ánh lỗi LLM.
+- **Cách xử lý:** Cấu hình provider OpenRouter với model `o4-mini`, giữ key trong `.env`, cập nhật `.env.example` không chứa secret và ghi provenance/fallback ở từng answer cùng metrics tổng hợp.
+- **Cách xác minh:** Evidence run cuối có 36 judge verdicts (6 samples × 2 modes × 3 states), mọi artifact đều ghi `fallback_count=0`; ba Ragas passes cũng ghi provider/model và bốn metric hữu hạn.
 
 Một lỗi tích hợp khác là main từng rename hai runner vào `data/embeddings/script/`; nhóm đã khôi phục `script/run_phase1.py` và `script/run_corruption_flow.py` để lệnh README hoạt động.
 
@@ -265,12 +279,12 @@ Một lỗi tích hợp khác là main từng rename hai runner vào `data/embed
 
 | Giới hạn hiện tại | Ảnh hưởng | Hướng cải thiện có thể kiểm chứng |
 | --- | --- | --- |
-| Evaluation set chỉ có 3 samples | Metrics nhạy với từng document và chưa bao phủ nhiều dạng câu hỏi | Tăng số sample mỗi question type, version/hash test set và so sánh confidence intervals |
+| Evaluation set có 6 samples | Metrics vẫn nhạy với từng document | Tăng sample mỗi type, giữ SHA-256/version và tính confidence intervals |
 | Source không có categories | Quality luôn có 1 warning; không có category question | Dùng query/source có subject metadata hoặc giữ N/A có truy vết, không tự suy đoán |
-| Ragas tắt mặc định | Chưa có faithfulness/context metrics | Chạy `RUN_RAGAS=1`, lưu kết quả và chi phí/thời gian |
+| Ragas/LLM có tính ngẫu nhiên | Answer relevancy và faithfulness không phục hồi đơn điệu dù retrieval phục hồi | Lặp evaluation nhiều seed/run và báo mean/variance |
 | Corruption severity cố định 10% | Chỉ có một điểm đo tác động | Chạy 5/10/20%, lưu fingerprints và vẽ trend metrics |
-| Chroma binary không commit | Không có snapshot index binary trong Git | Rebuild từ clean data và embedding manifest bằng runner; giảm repository bloat |
-| LLM evaluator có fallback | Exit 0 có thể che provider failure | Ghi `fallback_count` vào metrics hoặc thêm strict-evaluation mode |
+| Chroma binary không commit | Không có snapshot index binary trong Git | Rebuild từ portable manifest documents bằng runner; giảm repository bloat |
+| Evaluator có fallback resilience | Exit 0 vẫn có thể che provider failure nếu chỉ nhìn process status | Dùng `fallback_count`, provenance và strict evidence gate như final run |
 
 ## 13. Checklist trước khi nộp
 

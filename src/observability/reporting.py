@@ -104,6 +104,7 @@ def generate_phase1_report(
     metrics: dict[str, Any],
     quality: dict[str, Any],
     freshness: dict[str, Any],
+    agent_metrics: dict[str, Any] | None = None,
 ) -> None:
     """Write an evidence-based Markdown report for the baseline phase."""
     source_fields = [
@@ -140,8 +141,22 @@ def generate_phase1_report(
         lines.append(f"| `{metric}` | {_format_value(metrics.get(metric))} |")
     lines.append(f"| `ragas` | {_format_value(metrics.get('ragas'))} |")
 
+    agent_metrics = agent_metrics or {}
     lines.extend(
         [
+            "",
+            "## Real agent evaluation",
+            "",
+            "| Metric | Value |",
+            "| --- | ---: |",
+            f"| Samples | {_format_value(agent_metrics.get('samples'))} |",
+            *[
+                f"| `{metric}` | {_format_value(agent_metrics.get(metric))} |"
+                for metric in PRIMARY_METRICS
+            ],
+            f"| Judge provider/model | {_format_value(agent_metrics.get('judge_provider'))} / {_format_value(agent_metrics.get('judge_model'))} |",
+            f"| Judge fallbacks | {_format_value(agent_metrics.get('fallback_count'))} / {_format_value(agent_metrics.get('judge_calls'))} |",
+            f"| Ragas | {_format_value(agent_metrics.get('ragas'))} |",
             "",
             "## Data quality",
             "",
@@ -187,6 +202,35 @@ def generate_phase1_report(
     write_text(Path(report_path), "\n".join(lines).rstrip() + "\n")
 
 
+def _write_metrics_svg(
+    path: Path,
+    states: tuple[dict[str, Any], dict[str, Any], dict[str, Any]],
+) -> None:
+    colors = ("#2563eb", "#dc2626", "#16a34a")
+    labels = ("Baseline", "Corrupted", "Repaired")
+    rows = [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">',
+        '<rect width="900" height="520" fill="white"/>',
+        '<text x="450" y="35" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="bold">Real Agent Metric Comparison</text>',
+    ]
+    for metric_index, metric in enumerate(PRIMARY_METRICS):
+        y = 85 + metric_index * 105
+        rows.append(f'<text x="20" y="{y + 20}" font-family="sans-serif" font-size="15">{metric}</text>')
+        maximum = 5.0 if metric == "mean_judge_score" else 1.0
+        for state_index, state in enumerate(states):
+            value = _number(state.get(metric)) or 0.0
+            width = max(0.0, min(500.0, value / maximum * 500.0))
+            bar_y = y + state_index * 24
+            rows.extend(
+                [
+                    f'<rect x="260" y="{bar_y}" width="{width:.1f}" height="17" fill="{colors[state_index]}"/>',
+                    f'<text x="770" y="{bar_y + 14}" font-family="sans-serif" font-size="13">{labels[state_index]}: {value:.4f}</text>',
+                ]
+            )
+    rows.append("</svg>")
+    write_text(path, "\n".join(rows) + "\n")
+
+
 def generate_corruption_report(
     report_path,
     baseline_metrics: dict[str, Any],
@@ -198,6 +242,8 @@ def generate_corruption_report(
     repaired_freshness: dict[str, Any],
     baseline_quality: dict[str, Any] | None = None,
     baseline_freshness: dict[str, Any] | None = None,
+    agent_metrics: tuple[dict[str, Any], dict[str, Any], dict[str, Any]] | None = None,
+    svg_path=None,
 ) -> None:
     """Write a comparison report without assuming that corruption or repair worked."""
     baseline_quality = baseline_quality or {}
@@ -228,6 +274,24 @@ def generate_corruption_report(
             f"{_format_value(repaired)} | {_format_value(corruption_delta)} | "
             f"{_format_value(repair_delta)} | {_format_value(recovery)} |"
         )
+
+    if agent_metrics:
+        lines.extend(["", "## Real agent comparison", ""])
+        lines.extend(
+            [
+                "| Metric | Baseline | Corrupted | Repaired |",
+                "| --- | ---: | ---: | ---: |",
+                *[
+                    f"| `{metric}` | {_format_value(agent_metrics[0].get(metric))} | {_format_value(agent_metrics[1].get(metric))} | {_format_value(agent_metrics[2].get(metric))} |"
+                    for metric in PRIMARY_METRICS
+                ],
+                f"| Judge fallbacks | {_format_value(agent_metrics[0].get('fallback_count'))} | {_format_value(agent_metrics[1].get('fallback_count'))} | {_format_value(agent_metrics[2].get('fallback_count'))} |",
+                f"| Ragas | {_format_value(agent_metrics[0].get('ragas'))} | {_format_value(agent_metrics[1].get('ragas'))} | {_format_value(agent_metrics[2].get('ragas'))} |",
+            ]
+        )
+        if svg_path:
+            _write_metrics_svg(Path(svg_path), agent_metrics)
+            lines.extend(["", f"![Real agent metric comparison]({Path(svg_path).name})"])
 
     lines.extend(
         [

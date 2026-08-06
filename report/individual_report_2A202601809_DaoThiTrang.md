@@ -48,7 +48,7 @@ Artifact cụ thể đã tạo:
 - `data/eval/test_set.json`
 - Commit triển khai Role 2: `d854776` (`feat: implement data cleaning pipeline`)
 
-Trong lần xác minh Role 2, 24 raw records tạo thành 24 clean records; 24 `paper_id` là duy nhất; không có `text_for_embedding` rỗng và không có `age_days` âm. Summary ngắn nhất có 826 ký tự nên không có record nào bị loại bởi ngưỡng 100 ký tự. Test set chứa ba sample thuộc loại summary, authors và date. Không tạo câu hỏi category vì cả 24 record nguồn đều không có category, tránh sinh ground truth rỗng hoặc tự bịa dữ liệu.
+Trong lần xác minh cuối, 24 raw records tạo thành 24 clean records; 24 `paper_id` là duy nhất; không có `text_for_embedding` rỗng và không có `age_days` âm. Summary ngắn nhất có 826 ký tự nên không có record nào bị loại bởi ngưỡng 100 ký tự. Test set chứa sáu samples: hai summary, hai authors và hai date. Không tạo câu hỏi category vì cả 24 record nguồn đều không có category, tránh sinh ground truth rỗng hoặc tự bịa dữ liệu.
 
 ## 4. Giải thích phần kỹ thuật đã thực hiện
 
@@ -62,7 +62,7 @@ Cleaning được thực hiện theo từng record. Text được giải mã HTM
 
 Ngày được parse bằng `pandas.to_datetime(..., utc=True)` và xuất lại theo ISO date. `age_days` là số ngày từ ngày xuất bản đến ngày chạy pipeline. Dữ liệu được deduplicate theo `paper_id`, sau đó sắp xếp theo ngày xuất bản giảm dần và ID tăng dần để kết quả có tính tái hiện.
 
-Test-set builder kiểm tra các cột bắt buộc, chỉ chọn document có ID/title/summary hợp lệ và tạo ground truth trực tiếp từ cleaned row. Các câu hỏi có exact title để `qa.py` có thể lookup đúng paper. Mỗi sample giữ `ground_truth_doc_ids` là `paper_id` của document tương ứng.
+Test-set builder kiểm tra các cột bắt buộc, chỉ chọn document có ID/title/summary hợp lệ và tạo ground truth trực tiếp từ cleaned row. Mỗi câu hỏi dùng cue gồm một phần title và abstract, không chứa full exact title; mỗi sample giữ `ground_truth_doc_ids` là `paper_id` của document tương ứng.
 
 ### Input, output và contract
 
@@ -96,7 +96,7 @@ print(f"Raw: {len(records)}, clean: {len(df)}, test samples: {len(test_set)}")
 ```
 
 - **Kết quả mong đợi:** Sinh được clean CSV/JSON và test set; ID duy nhất; summary đạt ngưỡng; ngày và embedding đúng format.
-- **Kết quả thực tế:** 24 raw records, 24 clean records, 24 ID duy nhất và 3 test samples có ground-truth ID hợp lệ.
+- **Kết quả thực tế:** 24 raw records, 24 clean records, 24 ID duy nhất và 6 test samples có ground-truth ID hợp lệ.
 - **Artifact/log:** `data/clean/papers_clean.csv`, `data/clean/papers_clean.json`, `data/eval/test_set.json`.
 
 ## 5. Một quyết định kỹ thuật quan trọng
@@ -124,22 +124,23 @@ Quality checks kiểm tra tính đầy đủ, hợp lệ và duy nhất của d�
 
 ## 8. Phân tích kết quả
 
-### Metrics chính
+### Real-agent metrics chính
 
 | Metric/signal | Baseline | Corrupted | Repaired | Nhận xét cá nhân |
 | --- | ---: | ---: | ---: | --- |
-| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Cùng test set cho thấy thay đổi đến từ corpus chứ không phải câu hỏi. |
-| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Clean/repaired answer khớp ground truth; corrupted answer không còn khớp. |
-| `judge_accuracy` | 1.0 | 0.0 | 1.0 | LLM judge chạy qua OpenRouter `o4-mini`, 0/9 lượt fallback. |
-| `mean_judge_score` | 5 | 1 | 5 | Answer quality phục hồi hoàn toàn sau khi build lại từ raw. |
+| `retrieval_hit_rate` | 1.0000 | 0.5000 | 1.0000 | Cùng test set cho thấy thay đổi đến từ corpus chứ không phải câu hỏi. |
+| `mean_token_f1` | 0.3227 | 0.0893 | 0.2945 | Corrupted answer overlap giảm mạnh; repaired tiến gần baseline. |
+| `judge_accuracy` | 1.0000 | 0.3333 | 1.0000 | OpenRouter `o4-mini` judge chạy thật; fallback bằng 0 ở cả ba agent states. |
+| `mean_judge_score` | 5.0000 | 2.3333 | 5.0000 | Answer quality suy giảm và phục hồi sau khi build lại từ raw. |
+| Ragas context precision/recall | 0.6667/0.6667 | 0.1667/0.1667 | 0.6667/0.6667 | Context quality giảm và phục hồi trên cùng test set. |
 | Quality checks | PASS | FAIL | PASS | Corrupted vi phạm uniqueness, title/summary validity, completeness và freshness. |
 | Freshness status | FRESH | STALE | FRESH | Ba stale dates làm corrupted stale; clean lại khôi phục ngày nguồn. |
 
 ### Kết luận từ số liệu
 
-`drop_latest_record` ảnh hưởng trực tiếp nhất tới bộ test hiện tại vì ba evaluation samples tham chiếu ba paper mới nhất đã bị xóa khỏi corrupted corpus. Vì document IDs không còn trong index, `retrieval_hit_rate` giảm từ 1.0 xuống 0.0; answer metrics cũng giảm theo. Các mutation blank/noisy summary và truncated title đồng thời tạo quality signals rõ ràng, giúp phân biệt lỗi dữ liệu với lỗi model.
+`drop_latest_record` ảnh hưởng trực tiếp nhất tới bộ test sáu samples vì ba ground-truth documents bị xóa khỏi corrupted corpus. Real-agent `retrieval_hit_rate` giảm từ 1.0 xuống 0.5; deterministic reference giảm từ 1.0 xuống 0.3333. Các mutation blank/noisy summary và truncated title đồng thời tạo quality signals rõ ràng, giúp phân biệt lỗi dữ liệu với lỗi model.
 
-Repair chạy lại chính cleaning contract trên raw snapshot, khôi phục 24 records, ID, title, summary, publication date và `text_for_embedding`. Trên cùng `data/eval/test_set.json`, retrieval và answer metrics trở về baseline. Điều này xác nhận clean schema và ground-truth document identity ổn định là điều kiện để comparison có ý nghĩa.
+Repair chạy lại chính cleaning contract trên raw snapshot, khôi phục 24 records, ID, title, summary, publication date, `summary_chars` và `text_for_embedding`. Trên cùng `data/eval/test_set.json`, hit rate, judge metrics và Ragas context precision/recall trở về baseline; answer relevancy và faithfulness biến thiên theo LLM run nên không được dùng riêng để kết luận recovery. Điều này xác nhận clean schema và ground-truth document identity ổn định là điều kiện để comparison có ý nghĩa.
 
 Kết quả khác kỳ vọng là cả 24 record nguồn đều thiếu category, nên baseline/repaired vẫn có một warning `categories_not_null`. Đây là warning chứ không phải error; nhóm không tự suy đoán category và không tạo category question có ground truth rỗng.
 
