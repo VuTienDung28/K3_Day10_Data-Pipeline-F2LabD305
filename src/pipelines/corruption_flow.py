@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from uuid import uuid4
 
 import pandas as pd
 
-from core.config import load_settings
+from core.config import load_settings, normalized_provider
 from core.utils import now_utc, read_json, write_csv, write_json
-from evaluation.metrics import evaluate_pipeline
+from evaluation.metrics import evaluate_agent_pipeline, evaluate_pipeline
 from ingestion.cleaning import build_clean_dataframe
 from ingestion.corruption import corrupt_clean_dataframe
 from ingestion.crossref import load_raw_records
@@ -28,12 +29,15 @@ def _save_dataframe(df: pd.DataFrame, csv_path: Path, json_path: Path) -> None:
 
 def main() -> None:
     settings = load_settings()
+    started_at = now_utc()
+    run_id = str(uuid4())
     _require_artifacts(
         [
             settings.paths.raw_records_json,
             settings.paths.clean_json,
             settings.paths.eval_testset,
             settings.paths.baseline_metrics,
+            settings.paths.baseline_agent_metrics,
         ]
     )
 
@@ -41,6 +45,7 @@ def main() -> None:
     if baseline.empty:
         raise RuntimeError("Baseline clean artifact is empty; cannot run corruption flow.")
     baseline_metrics = read_json(settings.paths.baseline_metrics)
+    baseline_agent_metrics = read_json(settings.paths.baseline_agent_metrics)
     baseline_quality = run_data_quality_checks(baseline, settings, "baseline_quality")
     baseline_freshness = build_freshness_report(
         baseline, settings, settings.paths.freshness_report
@@ -61,6 +66,13 @@ def main() -> None:
         settings.paths.eval_testset,
         settings.paths.corrupted_metrics,
         settings.paths.corrupted_answers,
+    )
+    corrupted_agent_evaluation = evaluate_agent_pipeline(
+        settings,
+        corrupted_index,
+        settings.paths.eval_testset,
+        settings.paths.corrupted_agent_metrics,
+        settings.paths.corrupted_agent_answers,
     )
     corrupted_quality = run_data_quality_checks(corrupted, settings, "corrupted_quality")
     corrupted_freshness = build_freshness_report(
@@ -90,6 +102,13 @@ def main() -> None:
         settings.paths.repaired_metrics,
         settings.paths.repaired_answers,
     )
+    repaired_agent_evaluation = evaluate_agent_pipeline(
+        settings,
+        repaired_index,
+        settings.paths.eval_testset,
+        settings.paths.repaired_agent_metrics,
+        settings.paths.repaired_agent_answers,
+    )
     repaired_quality = run_data_quality_checks(repaired, settings, "repaired_quality")
     repaired_freshness = build_freshness_report(
         repaired,
@@ -108,4 +127,44 @@ def main() -> None:
         repaired_freshness,
         baseline_quality=baseline_quality,
         baseline_freshness=baseline_freshness,
+        agent_metrics=(
+            baseline_agent_metrics,
+            corrupted_agent_evaluation.summary,
+            repaired_agent_evaluation.summary,
+        ),
+        svg_path=settings.paths.comparison_svg,
+    )
+    write_json(
+        settings.paths.demo_answers,
+        {
+            "schema_version": 1,
+            "provider": normalized_provider(settings),
+            "model": settings.model_name,
+            "states": {
+                state: str(path.relative_to(settings.paths.project_dir))
+                for state, path in {
+                    "baseline": settings.paths.baseline_agent_answers,
+                    "corrupted": settings.paths.corrupted_agent_answers,
+                    "repaired": settings.paths.repaired_agent_answers,
+                }.items()
+            },
+        },
+    )
+    write_json(
+        settings.paths.corruption_run,
+        {
+            "schema_version": 1,
+            "run_id": run_id,
+            "started_at": started_at.isoformat(),
+            "completed_at": now_utc().isoformat(),
+            "provider": normalized_provider(settings),
+            "model": settings.model_name,
+            "embedding_model": settings.embedding_model,
+            "test_set_sha256": corrupted_evaluation.summary["test_set_sha256"],
+            "states": {
+                "baseline": baseline_agent_metrics,
+                "corrupted": corrupted_agent_evaluation.summary,
+                "repaired": repaired_agent_evaluation.summary,
+            },
+        },
     )

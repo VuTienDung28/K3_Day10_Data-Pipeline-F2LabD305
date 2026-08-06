@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "provider": "openrouter",
+  "model": "o4-mini",
+  "states": {
+    "baseline": "data\\results\\baseline_agent_answers.json",
+    "corrupted": "data\\results\\corrupted_agent_answers.json",
+    "repaired": "data\\results\\repaired_agent_answers.json"
+  }
+}

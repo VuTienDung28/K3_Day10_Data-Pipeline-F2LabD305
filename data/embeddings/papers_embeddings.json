@@ -1,7 +1,8 @@
 {
+  "schema_version": 2,
   "backend": "chroma",
   "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-  "persist_path": "C:\\Users\\LG\\Desktop\\Study Material\\AI\\Vin\\Lab\\K3_Day10_Data-Pipeline-F2LabD305\\data\\chroma",
+  "persist_path": "data/chroma",
   "collection_name": "papers-baseline",
   "documents": [
     {

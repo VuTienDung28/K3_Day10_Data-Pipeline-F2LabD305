@@ -19,6 +19,7 @@ def _settings(tmp_path: Path, max_results: int = 3):
         freshness_report=tmp_path / "quality" / "freshness.json",
         baseline_report=tmp_path / "reports" / "phase1.md",
         comparison_report=tmp_path / "reports" / "corruption.md",
+        comparison_svg=tmp_path / "reports" / "corruption.svg",
     )
     return replace(settings, max_results=max_results, paths=paths)
 
@@ -159,6 +160,18 @@ def test_reports_render_real_values_and_comparison_deltas(tmp_path: Path) -> Non
         "mean_judge_score": 4.6,
     }
 
+    agent_metrics = (
+        baseline_metrics
+        | {
+            "judge_provider": "openrouter",
+            "judge_model": "openai/o4-mini",
+            "fallback_count": 0,
+            "judge_calls": 12,
+            "ragas": {"status": "passed", "metrics": {"faithfulness": 0.95}},
+        },
+        corrupted_metrics | {"fallback_count": 0, "ragas": {"status": "passed"}},
+        repaired_metrics | {"fallback_count": 0, "ragas": {"status": "passed"}},
+    )
     generate_phase1_report(
         settings.paths.baseline_report,
         {
@@ -173,6 +186,7 @@ def test_reports_render_real_values_and_comparison_deltas(tmp_path: Path) -> Non
         baseline_metrics,
         repaired_quality,
         repaired_freshness,
+        agent_metrics=agent_metrics[0],
     )
     generate_corruption_report(
         settings.paths.comparison_report,
@@ -185,13 +199,21 @@ def test_reports_render_real_values_and_comparison_deltas(tmp_path: Path) -> Non
         repaired_freshness,
         baseline_quality=baseline_quality,
         baseline_freshness=baseline_freshness,
+        agent_metrics=agent_metrics,
+        svg_path=settings.paths.comparison_svg,
     )
 
     baseline_text = settings.paths.baseline_report.read_text(encoding="utf-8")
     comparison_text = settings.paths.comparison_report.read_text(encoding="utf-8")
     assert "Phase 1 Baseline Report" in baseline_text
     assert "`retrieval_hit_rate` | 1.0000" in baseline_text
+    assert "Real agent evaluation" in baseline_text
+    assert "openrouter / openai/o4-mini" in baseline_text
+    assert '"faithfulness": 0.95' in baseline_text
     assert "Corruption and Repair Comparison" in comparison_text
+    assert "Real agent comparison" in comparison_text
+    assert "![Real agent metric comparison](corruption.svg)" in comparison_text
+    assert settings.paths.comparison_svg.read_text(encoding="utf-8").startswith("<svg")
     assert "| Signal | Baseline | Corrupted | Repaired |" in comparison_text
     assert "| Quality status | **PASS** | **FAIL** | **PASS** |" in comparison_text
     assert "| Freshness status | **FRESH** | **FRESH** | **FRESH** |" in comparison_text

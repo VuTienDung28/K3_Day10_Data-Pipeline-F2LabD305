@@ -76,7 +76,7 @@ Quality suite kiểm tra row count và required columns; null/duplicate IDs; tit
 ```
 
 - **Kết quả mong đợi:** Clean data PASS/FRESH; corrupted signals bị phát hiện; malformed input không crash; report có metrics/deltas thật.
-- **Kết quả thực tế:** `6 passed` cho observability/corruption focused tests và `8 passed` cho full suite.
+- **Kết quả thực tế:** Full suite đạt `15 passed`; quality/freshness và report assertions đều pass.
 - **Artifact/log:** `data/quality/`, `data/reports/phase1_report.md`, `data/reports/corruption_report.md`.
 
 ## 5. Một quyết định kỹ thuật quan trọng
@@ -102,27 +102,28 @@ Quality suite kiểm tra row count và required columns; null/duplicate IDs; tit
 2. Evaluation set liên kết từng câu hỏi với ground truth và document IDs. Retrieval hit đo ID đúng trong top-k; token F1 và LLM judge đo answer quality.
 3. Quality checks đo completeness, uniqueness, validity, consistency và volume; freshness monitoring đo độ mới theo publication dates. Một dataset có thể đúng schema nhưng stale hoặc fresh nhưng chứa duplicate/noise.
 4. Baseline, corrupted và repaired dùng cùng test set để metric delta phản ánh trạng thái dữ liệu. Nếu đổi câu hỏi, comparison sẽ bị nhiễu.
-5. Repair thành công khi build lại từ raw artifact, quality/freshness phục hồi và metrics trên cùng test set trở lại gần baseline. Lần chạy hiện tại cho thấy repaired phục hồi hoàn toàn bốn metrics chính.
+5. Repair thành công khi build lại từ raw artifact, quality/freshness phục hồi và metrics trên cùng test set cải thiện so với corrupted. Lần chạy hiện tại cho thấy hit rate, judge metrics và Ragas context precision/recall trở lại baseline; agent token F1 tiến gần baseline.
 
 ## 8. Phân tích kết quả
 
-### Metrics chính
+### Real-agent metrics chính
 
 | Metric/signal | Baseline | Corrupted | Repaired | Nhận xét cá nhân |
 | --- | ---: | ---: | ---: | --- |
-| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Retrieval impact đồng thời với quality failures; repair phục hồi. |
-| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Answer overlap giảm hoàn toàn ở corrupted state. |
-| `judge_accuracy` | 1.0 | 0.0 | 1.0 | OpenRouter `o4-mini` judge chạy thật, 0/9 fallback. |
-| `mean_judge_score` | 5 | 1 | 5 | Chênh lệch 4 điểm và phục hồi đầy đủ. |
+| `retrieval_hit_rate` | 1.0000 | 0.5000 | 1.0000 | Retrieval impact đồng thời với quality failures; repair phục hồi. |
+| `mean_token_f1` | 0.3227 | 0.0893 | 0.2945 | Answer overlap giảm mạnh và repaired tiến gần baseline. |
+| `judge_accuracy` | 1.0000 | 0.3333 | 1.0000 | OpenRouter `o4-mini` judge chạy thật; cả ba agent states có fallback bằng 0. |
+| `mean_judge_score` | 5.0000 | 2.3333 | 5.0000 | Judge score suy giảm rõ và phục hồi. |
+| Ragas context precision/recall | 0.6667/0.6667 | 0.1667/0.1667 | 0.6667/0.6667 | Context quality khớp với retrieval degradation/recovery. |
 | Quality checks | PASS | FAIL | PASS | Failed error checks: 0 → 6 → 0; warning checks luôn là 1. |
 | Freshness status | FRESH | STALE | FRESH | Stale rows: 0 → 3 → 0. |
 
 ### Kết luận từ số liệu
 
-1. Corruption tạo 3 duplicate IDs, 3 title ngắn, 3 summary rỗng/ngắn, 3 noise markers và 3 stale dates; quality chuyển PASS → FAIL, freshness chuyển FRESH → STALE, còn retrieval/answer metrics giảm từ 1.0/5 xuống 0.0/1.
-2. Repair chạy lại cleaning từ raw records; failed error checks về 0, stale rows về 0 và metrics trở lại baseline.
+1. Corruption tạo 3 duplicate IDs, 3 title ngắn, 3 summary rỗng/ngắn, 3 noise markers và 3 stale dates; quality chuyển PASS → FAIL, freshness chuyển FRESH → STALE; agent hit rate giảm 1.0 xuống 0.5 và judge accuracy giảm 1.0 xuống 0.3333.
+2. Repair chạy lại cleaning từ raw records; failed error checks về 0, stale rows về 0; hit rate, judge metrics và Ragas context precision/recall trở lại baseline. Deterministic reference cũng ghi nhận hit rate `1.0 → 0.3333 → 1.0`.
 
-`drop_latest_record` tác động trực tiếp nhất tới evaluation vì ba paper bị drop là ground-truth documents của ba samples. Observability artifacts không chỉ chứng minh dataset xấu mà còn chỉ ra các failure dimensions đi kèm metric degradation.
+`drop_latest_record` tác động trực tiếp nhất tới evaluation vì ba trong sáu ground-truth documents bị loại. Observability artifacts không chỉ chứng minh dataset xấu mà còn chỉ ra các failure dimensions đi kèm metric degradation. Answer relevancy và faithfulness của Ragas biến thiên không đơn điệu giữa các LLM runs nên không được dùng riêng làm bằng chứng recovery.
 
 Kết quả đáng chú ý là row count vẫn bằng 24 do ba dropped rows được bù bởi ba duplicates. Check volume PASS nhưng uniqueness FAIL, cho thấy cần dùng nhiều quality dimensions thay vì một chỉ số đơn lẻ. Một warning category còn tồn tại ở cả baseline và repaired vì source thiếu metadata; report giữ warning này để phản ánh giới hạn thực tế.
 

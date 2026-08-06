@@ -111,22 +111,23 @@ $records.Count
 
 ## 8. Phân tích kết quả
 
-### Metrics chính
+### Real-agent metrics chính
 
 | Metric/signal | Baseline | Corrupted | Repaired | Nhận xét |
 | --- | ---: | ---: | ---: | --- |
-| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Corrupted corpus không truy hồi đúng ground-truth document; repair từ raw phục hồi về baseline. |
-| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Answer suy giảm cùng retrieval và khôi phục sau repair. |
-| `judge_accuracy` | 1.0 | 0.0 | 1.0 | OpenRouter `o4-mini` judge xác nhận chênh lệch ba trạng thái, không dùng heuristic fallback. |
-| `mean_judge_score` | 5 | 1 | 5 | Corrupted giảm bốn điểm và repaired phục hồi toàn bộ. |
+| `retrieval_hit_rate` | 1.0000 | 0.5000 | 1.0000 | Corruption loại ba trong sáu ground-truth documents; repair từ raw phục hồi ID coverage. |
+| `mean_token_f1` | 0.3227 | 0.0893 | 0.2945 | Answer overlap suy giảm và repaired tiến gần baseline. |
+| `judge_accuracy` | 1.0000 | 0.3333 | 1.0000 | OpenRouter `o4-mini` judge xác nhận chênh lệch ba trạng thái; fallback bằng 0. |
+| `mean_judge_score` | 5.0000 | 2.3333 | 5.0000 | Corrupted giảm rõ và repaired phục hồi. |
+| Ragas context precision/recall | 0.6667/0.6667 | 0.1667/0.1667 | 0.6667/0.6667 | Context quality giảm và trở lại baseline. |
 | Quality checks | PASS | FAIL | PASS | Corrupted có 6 failed error checks; baseline/repaired không có failed error check. |
 | Freshness status | FRESH | STALE | FRESH | Corrupted có 3 stale rows; baseline/repaired có 0. |
 
 ### Kết luận từ số liệu
 
-Raw snapshot ổn định cho phép repair mà không phải gọi lại Crossref hoặc suy đoán dữ liệu đã mất. Corruption xóa ba record mới nhất và đồng thời tạo lỗi completeness, uniqueness, validity và freshness; các metrics retrieval/answer giảm từ mức tối đa xuống mức thấp nhất. Khi repair đọc lại `data/raw/crossref_records.json` và chạy cleaning/index lại, quality, freshness và bốn metrics chính đều trở về baseline.
+Raw snapshot ổn định cho phép repair mà không phải gọi lại Crossref hoặc suy đoán dữ liệu đã mất. Corruption xóa ba record mới nhất và đồng thời tạo lỗi completeness, uniqueness, validity và freshness; agent hit rate giảm 1.0 xuống 0.5, judge accuracy giảm 1.0 xuống 0.3333. Khi repair đọc lại `data/raw/crossref_records.json` và chạy cleaning/index lại, quality, freshness, hit rate, judge metrics và Ragas context precision/recall trở về baseline. Answer relevancy và faithfulness biến thiên giữa các LLM runs nên không được xem là recovery signal đơn điệu.
 
-Corruption ảnh hưởng rõ nhất đến ba sample evaluation là `drop_latest_record`: `corruption_log.json` cho thấy ba document mới nhất bị xóa khỏi corpus, khiến ground-truth document IDs không thể được retrieve. Kết quả này củng cố quyết định ingestion phải giữ raw artifacts có thể audit và tái sử dụng.
+`corruption_log.json` cho thấy ba document mới nhất bị xóa khỏi corpus, tương ứng ba trong sáu ground-truth documents. Deterministic reference cũng ghi nhận hit rate `1.0 → 0.3333 → 1.0`. Kết quả này củng cố quyết định ingestion phải giữ raw artifacts có thể audit và tái sử dụng.
 
 ## 9. Điều học được và hướng cải thiện
 

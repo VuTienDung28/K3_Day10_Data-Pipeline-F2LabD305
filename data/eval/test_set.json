@@ -2,28 +2,61 @@
   {
     "id": "eval-01-summary",
     "question_type": "summary",
-    "question": "What is the paper 'Hi\u2010 RAG : A Hierarchical Retrieval\u2010Augmented Generation Framework for Scalable and Generalisable Tool Selection in Large Language Model Agents' about?",
-    "ground_truth": "ABSTRACT As tool repositories for Large Language Model (LLM) agents grow from dozens to hundreds of endpoints, flat retrieval paradigms that treat the repository as an unstructured list suffer from context overload, cross\u2010domain semantic collision and degraded selection accuracy.",
+    "question": "Which paper discusses Hi\u2010 RAG : A; ABSTRACT As tool repositories for Large Language Model, and what is it about?",
+    "question_basis": "Hi\u2010 RAG : A; ABSTRACT As tool repositories for Large Language Model",
+    "ground_truth": "Hi\u2010 RAG : A Hierarchical Retrieval\u2010Augmented Generation Framework for Scalable and Generalisable Tool Selection in Large Language Model Agents: ABSTRACT As tool repositories for Large Language Model (LLM) agents grow from dozens to hundreds of endpoints, flat retrieval paradigms that treat the repository as an unstructured list suffer from context overload, cross\u2010domain semantic collision and degraded selection accuracy. We propose Hi\u2010RAG, a Hierarchical Retrieval\u2010Augmented Generation framework that exploits the Type Service Tool structure of the Model Context Protocol (MCP) via a principled coarse\u2010to\u2010fine pipeline. Stage 1 applies a Tool\u2010as\u2010Proxy hybrid retrieval strategy (BM25 sparse retrieval combined with dense bi\u2010encoder search, fused via Weighted Reciprocal Rank Fusion) to identify candidate services efficiently. Stage 2 performs type\u2010aware re\u2010ranking over a local heterogeneous graph, integrating a domain\u2010level gating mechanism with contextualised tool attention for precise service scoring. We further introduce MCPBench , the first benchmark for hierarchical tool selection, comprising 201 tools across 40 real\u2010enterprise services\u201423% of queries require multi\u2010service reasoning. Experiments across five LLMs show Hi\u2010RAG improves Top\u20101 accuracy by up to 7.5% (single\u2010service) and 10.0% (multi\u2010service) over Flat\u2010RAG, while reducing token consumption by up to 89% against full\u2010context injection. Comparisons with a strong late\u2010interaction baseline (ColBERT\u2010RAG) further confirm the superiority of Hi\u2010RAG. Zero\u2010shot evaluation on ToolLLM (16,464 tools) confirms scalability, and formal analyses establish context growth with respect to repository size.",
     "ground_truth_doc_ids": [
       "10.1111/exsy.70341"
     ]
   },
   {
-    "id": "eval-02-authors",
-    "question_type": "authors",
-    "question": "Who authored the paper 'SafeRAG: A Large-Language-Model-Based Multistage Retrieval-Augmented Framework for Oil and Gas Safety Report Generation'?",
-    "ground_truth": "Qianwen Cao, Chiyu Zhang, Junxiong Ning, Gongru Li",
+    "id": "eval-02-summary",
+    "question_type": "summary",
+    "question": "Which paper discusses SafeRAG: A Large-Language-Model-Based Multistage; Summary In high-risk industrial settings, leveraging large language, and what is it about?",
+    "question_basis": "SafeRAG: A Large-Language-Model-Based Multistage; Summary In high-risk industrial settings, leveraging large language",
+    "ground_truth": "SafeRAG: A Large-Language-Model-Based Multistage Retrieval-Augmented Framework for Oil and Gas Safety Report Generation: Summary In high-risk industrial settings, leveraging large language models (LLMs) for automated accident analysis and generating safety reports has emerged as an efficient workflow. However, this approach is fundamentally constrained by the models\u2019 inherent knowledge limitations, frequently resulting in analyses that lack domain-specific understanding and regulatory alignment. To tackle this issue, we introduce SafeRAG, a multistage retrieval-augmented framework for safety report generation. Specifically, the framework uses an entity-centric approach that prompts the LLMs to internally generate domain-specific knowledge. Concurrently, it performs a hierarchical retrieval of external regulations relevant to the accident at topic, concept, and context levels. To obtain well-structured reports, we leverage prompt engineering, integrating internal and external knowledge. Furthermore, a domain-expert persona is also assigned to help LLMs analyze accidents from a specific perspective. To evaluate our approach, we construct a data set from 10,818 accident-description/report pairs collected from real-world industry reports. Experiments show that SafeRAG substantially outperforms baseline LLMs on metrics that include bidirectional encoder representations from transformers (BERTScore) and bidirectional auto-regressive transformers (BARTScore), demonstrating the effectiveness of our approach.",
     "ground_truth_doc_ids": [
       "10.2118/234689-pa"
     ]
   },
   {
-    "id": "eval-03-date",
-    "question_type": "date",
-    "question": "When was the paper 'JADE-Plus: A Multimodal Agentic Retrieval-Augmented Generation Large Language Framework for Diagnostic Support in Jawbone Lesions: Development and Technical Validation Study' published?",
-    "ground_truth": "2026-07-13",
+    "id": "eval-03-authors",
+    "question_type": "authors",
+    "question": "Who authored the study described by JADE-Plus: A Multimodal Agentic; Abstract Diagnosing jawbone lesions in oral and maxillofacial?",
+    "question_basis": "JADE-Plus: A Multimodal Agentic; Abstract Diagnosing jawbone lesions in oral and maxillofacial",
+    "ground_truth": "Soroush Baseri Saadi, Jonas Ver Berne, Rocharles Cavalcante Fontenele, Peter Claes, Reinhilde Jacobs",
     "ground_truth_doc_ids": [
       "10.1007/s10278-026-02086-9"
+    ]
+  },
+  {
+    "id": "eval-04-authors",
+    "question_type": "authors",
+    "question": "Who authored the study described by Retrieval-Augmented Large-Language-Model-Based Time-Series Forecasting; Abstract Time-series foundation models and retrieval-based augmentation have?",
+    "question_basis": "Retrieval-Augmented Large-Language-Model-Based Time-Series Forecasting; Abstract Time-series foundation models and retrieval-based augmentation have",
+    "ground_truth": "Novanto Yudistira, Yanuar Putra Kharisma Adhiyasa",
+    "ground_truth_doc_ids": [
+      "10.21203/rs.3.rs-10178277/v1"
+    ]
+  },
+  {
+    "id": "eval-05-date",
+    "question_type": "date",
+    "question": "What is the publication date for the paper identified by Does retrieval-augmented generation impact; BACKGROUND There is evidence of rapid adoption of?",
+    "question_basis": "Does retrieval-augmented generation impact; BACKGROUND There is evidence of rapid adoption of",
+    "ground_truth": "2026-07-03",
+    "ground_truth_doc_ids": [
+      "10.2196/preprints.106157"
+    ]
+  },
+  {
+    "id": "eval-06-date",
+    "question_type": "date",
+    "question": "What is the publication date for the paper identified by An Agentic AI System; Designers, engineers, and building officials face increasing pressure?",
+    "question_basis": "An Agentic AI System; Designers, engineers, and building officials face increasing pressure",
+    "ground_truth": "2026-07-02",
+    "ground_truth_doc_ids": [
+      "10.3390/buildings16132637"
     ]
   }
 ]

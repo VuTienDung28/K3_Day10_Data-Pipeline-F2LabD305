@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+<rect width="900" height="520" fill="white"/>
+<text x="450" y="35" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="bold">Real Agent Metric Comparison</text>
+<text x="20" y="105" font-family="sans-serif" font-size="15">retrieval_hit_rate</text>
+<rect x="260" y="85" width="500.0" height="17" fill="#2563eb"/>
+<text x="770" y="99" font-family="sans-serif" font-size="13">Baseline: 1.0000</text>
+<rect x="260" y="109" width="250.0" height="17" fill="#dc2626"/>
+<text x="770" y="123" font-family="sans-serif" font-size="13">Corrupted: 0.5000</text>
+<rect x="260" y="133" width="500.0" height="17" fill="#16a34a"/>
+<text x="770" y="147" font-family="sans-serif" font-size="13">Repaired: 1.0000</text>
+<text x="20" y="210" font-family="sans-serif" font-size="15">mean_token_f1</text>
+<rect x="260" y="190" width="161.4" height="17" fill="#2563eb"/>
+<text x="770" y="204" font-family="sans-serif" font-size="13">Baseline: 0.3227</text>
+<rect x="260" y="214" width="44.7" height="17" fill="#dc2626"/>
+<text x="770" y="228" font-family="sans-serif" font-size="13">Corrupted: 0.0893</text>
+<rect x="260" y="238" width="147.3" height="17" fill="#16a34a"/>
+<text x="770" y="252" font-family="sans-serif" font-size="13">Repaired: 0.2945</text>
+<text x="20" y="315" font-family="sans-serif" font-size="15">judge_accuracy</text>
+<rect x="260" y="295" width="500.0" height="17" fill="#2563eb"/>
+<text x="770" y="309" font-family="sans-serif" font-size="13">Baseline: 1.0000</text>
+<rect x="260" y="319" width="166.7" height="17" fill="#dc2626"/>
+<text x="770" y="333" font-family="sans-serif" font-size="13">Corrupted: 0.3333</text>
+<rect x="260" y="343" width="500.0" height="17" fill="#16a34a"/>
+<text x="770" y="357" font-family="sans-serif" font-size="13">Repaired: 1.0000</text>
+<text x="20" y="420" font-family="sans-serif" font-size="15">mean_judge_score</text>
+<rect x="260" y="400" width="500.0" height="17" fill="#2563eb"/>
+<text x="770" y="414" font-family="sans-serif" font-size="13">Baseline: 5.0000</text>
+<rect x="260" y="424" width="233.3" height="17" fill="#dc2626"/>
+<text x="770" y="438" font-family="sans-serif" font-size="13">Corrupted: 2.3333</text>
+<rect x="260" y="448" width="500.0" height="17" fill="#16a34a"/>
+<text x="770" y="462" font-family="sans-serif" font-size="13">Repaired: 5.0000</text>
+</svg>

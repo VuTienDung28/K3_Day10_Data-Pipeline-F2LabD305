@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "evaluation_mode": "agent",
+  "samples": 6,
+  "test_set_sha256": "7c31f69a37d9c7dff9d49e500603084024675b849924bf94c8d25f2167781a8a",
+  "retrieval_hit_rate": 1.0,
+  "mean_token_f1": 0.29452934811640685,
+  "judge_accuracy": 1.0,
+  "mean_judge_score": 5,
+  "judge_provider": "openrouter",
+  "judge_model": "o4-mini",
+  "judge_calls": 6,
+  "fallback_count": 0,
+  "ragas": {
+    "status": "passed",
+    "provider": "openrouter",
+    "model": "o4-mini",
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "samples": 6,
+    "metrics": {
+      "answer_relevancy": 0.6008304725288701,
+      "context_precision": 0.6666666666,
+      "context_recall": 0.6666666666666666,
+      "faithfulness": 0.6466049382716049
+    }
+  }
+}

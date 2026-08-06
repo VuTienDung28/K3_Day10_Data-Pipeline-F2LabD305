@@ -65,11 +65,16 @@ def test_phase1_reuses_raw_and_testset_and_writes_baseline_artifacts(tmp_path: P
     monkeypatch.setattr(
         phase1,
         "evaluate_pipeline",
-        lambda *args: SimpleNamespace(summary={"samples": 0}),
+        lambda *args: SimpleNamespace(summary={"samples": 0, "test_set_sha256": "test"}),
+    )
+    monkeypatch.setattr(
+        phase1,
+        "evaluate_agent_pipeline",
+        lambda *args: SimpleNamespace(summary={"samples": 0, "fallback_count": 0, "ragas": {"status": "skipped"}}),
     )
     monkeypatch.setattr(phase1, "run_data_quality_checks", lambda *args: {"status": "pass"})
     monkeypatch.setattr(phase1, "build_freshness_report", lambda *args: {"status": "fresh"})
-    monkeypatch.setattr(phase1, "generate_phase1_report", lambda *args: calls.append("report"))
+    monkeypatch.setattr(phase1, "generate_phase1_report", lambda *args, **kwargs: calls.append("report"))
 
     phase1.main()
 
@@ -86,6 +91,10 @@ def test_corruption_flow_uses_same_testset_and_repairs_from_raw(tmp_path: Path, 
     write_json(settings.paths.raw_records_json, [])
     write_json(settings.paths.eval_testset, [{"id": "same-test-set"}])
     write_json(settings.paths.baseline_metrics, {"retrieval_hit_rate": 1.0})
+    write_json(
+        settings.paths.baseline_agent_metrics,
+        {"retrieval_hit_rate": 1.0, "test_set_sha256": "test", "ragas": {"status": "skipped"}},
+    )
     evaluated_testsets: list[Path] = []
     report_args = None
     report_kwargs = None
@@ -98,9 +107,22 @@ def test_corruption_flow_uses_same_testset_and_repairs_from_raw(tmp_path: Path, 
 
     def evaluate(_settings, index, test_set_path, metrics_path, answers_path):
         evaluated_testsets.append(test_set_path)
-        return SimpleNamespace(summary={"retrieval_hit_rate": 0.5})
+        return SimpleNamespace(
+            summary={
+                "retrieval_hit_rate": 0.5,
+                "test_set_sha256": "test",
+                "ragas": {"status": "skipped"},
+            }
+        )
 
     monkeypatch.setattr(corruption_flow, "evaluate_pipeline", evaluate)
+    monkeypatch.setattr(
+        corruption_flow,
+        "evaluate_agent_pipeline",
+        lambda current_settings, index, test_set_path, metrics_path, answers_path: evaluate(
+            current_settings, index, test_set_path, metrics_path, answers_path
+        ),
+    )
     monkeypatch.setattr(corruption_flow, "run_data_quality_checks", lambda df, settings, name: {"status": "pass", "checks": []})
     monkeypatch.setattr(corruption_flow, "build_freshness_report", lambda df, settings, path: {"status": "fresh"})
 
@@ -113,11 +135,16 @@ def test_corruption_flow_uses_same_testset_and_repairs_from_raw(tmp_path: Path, 
 
     corruption_flow.main()
 
-    assert evaluated_testsets == [settings.paths.eval_testset, settings.paths.eval_testset]
+    assert evaluated_testsets == [settings.paths.eval_testset] * 4
     assert settings.paths.corrupted_clean_csv.exists()
     assert settings.paths.repaired_clean_json.exists()
     assert report_args is not None
     assert len(report_args) == 8
     assert report_kwargs is not None
-    assert set(report_kwargs) == {"baseline_quality", "baseline_freshness"}
+    assert set(report_kwargs) == {
+        "baseline_quality",
+        "baseline_freshness",
+        "agent_metrics",
+        "svg_path",
+    }
     assert read_json(settings.paths.eval_testset) == [{"id": "same-test-set"}]

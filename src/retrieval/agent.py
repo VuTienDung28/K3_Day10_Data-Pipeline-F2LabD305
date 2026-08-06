@@ -10,17 +10,34 @@ from retrieval.index import LocalEmbeddingIndex
 from retrieval.llm import build_llm
 
 
-def build_agent(settings: Settings, index: LocalEmbeddingIndex):
+def build_agent(
+    settings: Settings,
+    index: LocalEmbeddingIndex,
+    trace: list[dict[str, Any]] | None = None,
+):
+    trace = trace if trace is not None else []
     @tool
     def semantic_search_papers(query: str, top_k: int = 4) -> str:
         """Search the local paper corpus with embeddings and return the most relevant papers."""
         results = index.search(query, top_k=top_k)
+        trace.append(
+            {
+                "tool": "semantic_search_papers",
+                "arguments": {"query": query, "top_k": top_k},
+                "retrieved_doc_ids": [result.paper_id for result in results],
+                "retrieved_titles": [result.title for result in results],
+                "retrieved_contexts": [result.content for result in results],
+            }
+        )
         lines = []
         for result in results:
             lines.append(
                 f"paper_id: {result.paper_id}\n"
                 f"title: {result.title}\n"
                 f"score: {result.score:.4f}\n"
+                f"published: {result.metadata.get('published', '')}\n"
+                f"authors: {result.metadata.get('authors_joined', '')}\n"
+                f"categories: {result.metadata.get('categories_joined', '')}\n"
                 f"{result.content}"
             )
         return "\n\n".join(lines)
@@ -29,6 +46,15 @@ def build_agent(settings: Settings, index: LocalEmbeddingIndex):
     def lookup_paper(paper_id_or_title: str) -> str:
         """Look up a paper by exact paper_id or exact title from the local corpus."""
         record = index.lookup(paper_id_or_title)
+        trace.append(
+            {
+                "tool": "lookup_paper",
+                "arguments": {"paper_id_or_title": paper_id_or_title},
+                "retrieved_doc_ids": [record["paper_id"]] if record else [],
+                "retrieved_titles": [record["title"]] if record else [],
+                "retrieved_contexts": [record["content"]] if record else [],
+            }
+        )
         if not record:
             return "No exact paper match found."
         return (

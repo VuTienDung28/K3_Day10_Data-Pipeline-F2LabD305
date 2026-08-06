@@ -120,14 +120,15 @@ Corrupted dataset phải được re-index và đánh giá bằng đúng test se
 
 ## 8. Phân tích kết quả
 
-### Metrics chính
+### Real-agent metrics chính
 
 | Metric/signal | Baseline | Corrupted | Repaired | Nhận xét cá nhân |
 | --- | ---: | ---: | ---: | --- |
-| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Ba ground-truth documents bị drop khiến corrupted không thể retrieve đúng ID. |
-| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Corrupted answer mất nội dung chuẩn; repair phục hồi. |
-| `judge_accuracy` | 1.0 | 0.0 | 1.0 | LLM judge xác nhận impact, không dùng fallback. |
-| `mean_judge_score` | 5 | 1 | 5 | Corruption giảm mạnh và repair trở lại baseline. |
+| `retrieval_hit_rate` | 1.0000 | 0.5000 | 1.0000 | Ba trong sáu ground-truth documents bị drop; repair phục hồi ID coverage. |
+| `mean_token_f1` | 0.3227 | 0.0893 | 0.2945 | Answer overlap giảm mạnh và repaired tiến gần baseline. |
+| `judge_accuracy` | 1.0000 | 0.3333 | 1.0000 | LLM judge xác nhận suy giảm và phục hồi, không dùng fallback. |
+| `mean_judge_score` | 5.0000 | 2.3333 | 5.0000 | Chênh lệch rõ giữa ba trạng thái. |
+| Ragas context precision/recall | 0.6667/0.6667 | 0.1667/0.1667 | 0.6667/0.6667 | Retrieval-context quality giảm và phục hồi đúng kỳ vọng. |
 | Quality checks | PASS | FAIL | PASS | Corrupted có 6 failed error checks; repaired có 0. |
 | Freshness status | FRESH | STALE | FRESH | Ba record bị lùi 3.650 ngày làm corrupted stale. |
 
@@ -135,7 +136,7 @@ Corrupted dataset phải được re-index và đánh giá bằng đúng test se
 
 `corruption_log.json` ghi 18 events: mỗi loại corruption tác động 3 record. Corrupted quality phát hiện 6 rows thuộc duplicate IDs, 3 title ngắn, 3 summary rỗng/ngắn, 3 summary có noise và 3 stale rows. Các signal này khớp trực tiếp với failure modes đã tạo trong module.
 
-`drop_latest_record` ảnh hưởng retrieval rõ nhất trong lần chạy này vì ba paper bị xóa chính là ba document được evaluation set tham chiếu. Vì vậy `retrieval_hit_rate` giảm từ 1.0 xuống 0.0; token F1 và judge metrics cũng giảm. Sau khi repair từ raw records và re-index, bốn metrics trở về baseline, quality PASS và freshness FRESH.
+Trên cùng test set sáu samples, `drop_latest_record` loại ba ground-truth documents nên real-agent hit rate giảm từ 1.0 xuống 0.5; deterministic reference giảm từ 1.0 xuống 0.3333. Repair từ raw records và re-index phục hồi hit rate, judge metrics, Ragas context precision/recall, quality và freshness. Answer relevancy và faithfulness của Ragas có biến thiên giữa các LLM runs nên không được dùng riêng để tuyên bố recovery.
 
 Một kết quả đáng chú ý là input và output đều có 24 dòng vì 3 dòng bị drop được bù bởi 3 dòng duplicate. `row_count` vẫn PASS trong khi uniqueness FAIL, chứng minh volume riêng lẻ không đủ phát hiện corruption; phải kết hợp document identity và quality dimensions.
 

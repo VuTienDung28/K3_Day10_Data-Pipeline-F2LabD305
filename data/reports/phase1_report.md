@@ -16,12 +16,25 @@
 
 | Metric | Value |
 | --- | ---: |
-| Samples | 3 |
+| Samples | 6 |
 | `retrieval_hit_rate` | 1.0000 |
-| `mean_token_f1` | 1.0000 |
+| `mean_token_f1` | 0.6667 |
+| `judge_accuracy` | 0.6667 |
+| `mean_judge_score` | 3.6667 |
+| `ragas` | {"status": "not_run_for_reference_mode"} |
+
+## Real agent evaluation
+
+| Metric | Value |
+| --- | ---: |
+| Samples | 6 |
+| `retrieval_hit_rate` | 1.0000 |
+| `mean_token_f1` | 0.3227 |
 | `judge_accuracy` | 1.0000 |
 | `mean_judge_score` | 5 |
-| `ragas` | {"skipped": "Set RUN_RAGAS=1 to enable the slower Ragas pass."} |
+| Judge provider/model | openrouter / o4-mini |
+| Judge fallbacks | 0 / 6 |
+| Ragas | {"embedding_model": "sentence-transformers/all-MiniLM-L6-v2", "metrics": {"answer_relevancy": 0.6447051652776783, "context_precision": 0.6666666666, "context_recall": 0.6666666666666666, "faithfulness": 0.6962041226747109}, "model": "o4-mini", "provider": "openrouter", "samples": 6, "status": "passed"} |
 
 ## Data quality
 

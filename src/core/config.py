@@ -27,7 +27,10 @@ class Paths:
     eval_testset: Path
     baseline_metrics: Path
     baseline_answers: Path
+    baseline_agent_metrics: Path
+    baseline_agent_answers: Path
     demo_answers: Path
+    baseline_run: Path
     quality_dir: Path
     gx_dir: Path
     freshness_report: Path
@@ -35,9 +38,15 @@ class Paths:
     corruption_log: Path
     corrupted_metrics: Path
     corrupted_answers: Path
+    corrupted_agent_metrics: Path
+    corrupted_agent_answers: Path
     repaired_metrics: Path
     repaired_answers: Path
+    repaired_agent_metrics: Path
+    repaired_agent_answers: Path
+    corruption_run: Path
     comparison_report: Path
+    comparison_svg: Path
 
 
 @dataclass(frozen=True)
@@ -95,7 +104,10 @@ def load_settings(project_dir: Path | None = None) -> Settings:
         eval_testset=data_dir / "eval" / "test_set.json",
         baseline_metrics=data_dir / "results" / "baseline_metrics.json",
         baseline_answers=data_dir / "results" / "baseline_answers.json",
+        baseline_agent_metrics=data_dir / "results" / "baseline_agent_metrics.json",
+        baseline_agent_answers=data_dir / "results" / "baseline_agent_answers.json",
         demo_answers=data_dir / "results" / "agent_demo_answers.json",
+        baseline_run=data_dir / "results" / "baseline_run.json",
         quality_dir=data_dir / "quality",
         gx_dir=data_dir / "quality" / "gx",
         freshness_report=data_dir / "quality" / "freshness_report.json",
@@ -103,9 +115,15 @@ def load_settings(project_dir: Path | None = None) -> Settings:
         corruption_log=data_dir / "results" / "corruption_log.json",
         corrupted_metrics=data_dir / "results" / "corrupted_metrics.json",
         corrupted_answers=data_dir / "results" / "corrupted_answers.json",
+        corrupted_agent_metrics=data_dir / "results" / "corrupted_agent_metrics.json",
+        corrupted_agent_answers=data_dir / "results" / "corrupted_agent_answers.json",
         repaired_metrics=data_dir / "results" / "repaired_metrics.json",
         repaired_answers=data_dir / "results" / "repaired_answers.json",
+        repaired_agent_metrics=data_dir / "results" / "repaired_agent_metrics.json",
+        repaired_agent_answers=data_dir / "results" / "repaired_agent_answers.json",
+        corruption_run=data_dir / "results" / "corruption_run.json",
         comparison_report=data_dir / "reports" / "corruption_report.md",
+        comparison_svg=data_dir / "reports" / "corruption_metrics.svg",
     )
 
     return Settings(

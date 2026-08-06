@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -114,9 +114,10 @@ class LocalEmbeddingIndex:
         write_json(
             manifest_path,
             {
+                "schema_version": 2,
                 "backend": "chroma",
                 "embedding_model": settings.embedding_model,
-                "persist_path": str(persist_path),
+                "persist_path": persist_path.relative_to(settings.paths.project_dir).as_posix(),
                 "collection_name": collection_name,
                 "documents": documents,
             },
@@ -130,12 +131,41 @@ class LocalEmbeddingIndex:
 
     @classmethod
     def load(cls, settings: Settings, embeddings_path: Path | None = None) -> "LocalEmbeddingIndex":
-        payload = read_json(embeddings_path or settings.paths.embeddings_json)
+        manifest_path = embeddings_path or settings.paths.embeddings_json
+        payload = read_json(manifest_path)
+        if payload.get("backend") != "chroma":
+            raise ValueError("Only Chroma embedding manifests are supported.")
+        documents = payload.get("documents", [])
+        if not documents:
+            raise ValueError("Embedding manifest contains no documents to load or rebuild.")
+
+        persist_path = settings.paths.chroma_dir
+        collection_name = payload["collection_name"]
+        client = chromadb.PersistentClient(path=str(persist_path))
+        try:
+            client.get_collection(name=collection_name)
+        except Exception:
+            embedding_model = MiniLMEmbeddings(payload.get("embedding_model", settings.embedding_model))
+            collection = client.create_collection(
+                name=collection_name,
+                configuration={"hnsw": {"space": "cosine"}},
+            )
+            collection.add(
+                ids=[document["record_id"] for document in documents],
+                embeddings=embedding_model.embed_documents([document["content"] for document in documents]),
+                documents=[document["content"] for document in documents],
+                metadatas=[document["metadata"] for document in documents],
+            )
+
+        manifest_settings = replace(
+            settings,
+            embedding_model=payload.get("embedding_model", settings.embedding_model),
+        )
         return cls(
-            settings=settings,
-            collection_name=payload["collection_name"],
-            documents=payload["documents"],
-            persist_path=Path(payload["persist_path"]),
+            settings=manifest_settings,
+            collection_name=collection_name,
+            documents=documents,
+            persist_path=persist_path,
         )
 
     def search(self, query: str, top_k: int | None = None) -> list[SearchResult]:
