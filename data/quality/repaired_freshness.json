@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-08-06T06:14:40.768120+00:00",
+  "status": "fresh",
+  "latest_published": "2026-08-01",
+  "oldest_published": "2026-02-12",
+  "stale_rows": 0,
+  "stale_paper_ids": [],
+  "future_rows": 0,
+  "invalid_date_rows": 0,
+  "total_rows": 24,
+  "freshness_threshold_days": 180,
+  "max_age_days": 175,
+  "mean_age_days": 76.58,
+  "is_fresh": true
+}

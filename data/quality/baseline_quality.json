@@ -1,0 +1,176 @@
+{
+  "report_name": "baseline_quality",
+  "generated_at": "2026-08-06T06:14:08.875367+00:00",
+  "status": "pass",
+  "success": true,
+  "total_rows": 24,
+  "passed_checks": 16,
+  "failed_checks": 0,
+  "warning_checks": 1,
+  "checks": [
+    {
+      "name": "row_count",
+      "dimension": "volume",
+      "severity": "error",
+      "success": true,
+      "observed": 24,
+      "expected": ">= 24 rows",
+      "details": []
+    },
+    {
+      "name": "required_columns",
+      "dimension": "schema",
+      "severity": "error",
+      "success": true,
+      "observed": [],
+      "expected": "all required columns present: ['age_days', 'paper_id', 'published', 'summary', 'text_for_embedding', 'title']",
+      "details": []
+    },
+    {
+      "name": "paper_id_not_null",
+      "dimension": "completeness",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 blank paper_id values",
+      "details": []
+    },
+    {
+      "name": "paper_id_unique",
+      "dimension": "uniqueness",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 rows with duplicate paper_id",
+      "details": []
+    },
+    {
+      "name": "title_not_null",
+      "dimension": "completeness",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 blank titles",
+      "details": []
+    },
+    {
+      "name": "title_min_length",
+      "dimension": "validity",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 titles shorter than 15 characters",
+      "details": []
+    },
+    {
+      "name": "summary_not_null",
+      "dimension": "completeness",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 blank summaries",
+      "details": []
+    },
+    {
+      "name": "summary_min_length",
+      "dimension": "validity",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 summaries shorter than 100 characters",
+      "details": []
+    },
+    {
+      "name": "summary_noise_markers",
+      "dimension": "validity",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 summaries containing known corruption markers",
+      "details": []
+    },
+    {
+      "name": "text_for_embedding_not_null",
+      "dimension": "completeness",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 blank text_for_embedding values",
+      "details": []
+    },
+    {
+      "name": "embedding_contains_title",
+      "dimension": "consistency",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 embedding texts missing their current title",
+      "details": []
+    },
+    {
+      "name": "embedding_contains_summary",
+      "dimension": "consistency",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 embedding texts missing their current non-blank summary",
+      "details": []
+    },
+    {
+      "name": "published_valid",
+      "dimension": "validity",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 invalid publication dates",
+      "details": []
+    },
+    {
+      "name": "age_days_valid",
+      "dimension": "validity",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 missing or negative age_days values",
+      "details": []
+    },
+    {
+      "name": "freshness_threshold",
+      "dimension": "freshness",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 rows older than 180 days",
+      "details": []
+    },
+    {
+      "name": "age_days_consistent_with_published",
+      "dimension": "consistency",
+      "severity": "error",
+      "success": true,
+      "observed": 0,
+      "expected": "0 rows where age_days differs from published by more than 1 day",
+      "details": []
+    },
+    {
+      "name": "categories_not_null",
+      "dimension": "completeness",
+      "severity": "warning",
+      "success": false,
+      "observed": 24,
+      "expected": "0 blank categories_joined values",
+      "details": [
+        "10.1111/exsy.70341",
+        "10.2118/234689-pa",
+        "10.1007/s10278-026-02086-9",
+        "10.21203/rs.3.rs-10178277/v1",
+        "10.2196/preprints.106157",
+        "10.3390/buildings16132637",
+        "10.21079/11681/50309",
+        "10.63646/kpqm1958",
+        "10.21203/rs.3.rs-10012178/v1",
+        "10.47576/2949-1894.2026.7.7.023"
+      ]
+    }
+  ]
+}

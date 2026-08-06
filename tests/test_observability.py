@@ -123,8 +123,12 @@ def test_reports_render_real_values_and_comparison_deltas(tmp_path: Path) -> Non
     clean = _clean_dataframe()
     corrupted = clean.copy()
     corrupted.loc[0, "summary"] = ""
+    baseline_quality = run_data_quality_checks(clean, settings, "baseline_quality")
     repaired_quality = run_data_quality_checks(clean, settings, "repaired_quality")
     corrupted_quality = run_data_quality_checks(corrupted, settings, "corrupted_quality")
+    baseline_freshness = build_freshness_report(
+        clean, settings, tmp_path / "quality" / "baseline_freshness.json"
+    )
     repaired_freshness = build_freshness_report(
         clean, settings, tmp_path / "quality" / "repaired_freshness.json"
     )
@@ -179,6 +183,8 @@ def test_reports_render_real_values_and_comparison_deltas(tmp_path: Path) -> Non
         repaired_quality,
         corrupted_freshness,
         repaired_freshness,
+        baseline_quality=baseline_quality,
+        baseline_freshness=baseline_freshness,
     )
 
     baseline_text = settings.paths.baseline_report.read_text(encoding="utf-8")
@@ -186,5 +192,8 @@ def test_reports_render_real_values_and_comparison_deltas(tmp_path: Path) -> Non
     assert "Phase 1 Baseline Report" in baseline_text
     assert "`retrieval_hit_rate` | 1.0000" in baseline_text
     assert "Corruption and Repair Comparison" in comparison_text
+    assert "| Signal | Baseline | Corrupted | Repaired |" in comparison_text
+    assert "| Quality status | **PASS** | **FAIL** | **PASS** |" in comparison_text
+    assert "| Freshness status | **FRESH** | **FRESH** | **FRESH** |" in comparison_text
     assert "`retrieval_hit_rate` | 1.0000 | 0.5000 | 1.0000 | -0.5000 | 0.5000 | 1.0000" in comparison_text
     assert "Repair improved" in comparison_text

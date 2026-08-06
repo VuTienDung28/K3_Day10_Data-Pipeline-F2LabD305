@@ -113,18 +113,20 @@ $records.Count
 
 ### Metrics chính
 
-| Metric/signal        | Baseline | Corrupted | Repaired | Nhận xét                          |
-| -------------------- | -------: | --------: | -------: | --------------------------------- |
-| `retrieval_hit_rate` |      N/A |       N/A |      N/A | Chờ `data/results/*_metrics.json` |
-| `mean_token_f1`      |      N/A |       N/A |      N/A | Chưa có agent evaluation          |
-| `judge_accuracy`     |      N/A |       N/A |      N/A | Chưa có judge results             |
-| `mean_judge_score`   |      N/A |       N/A |      N/A | Chưa có judge results             |
-| Quality checks       |      N/A |       N/A |      N/A | Chờ `data/quality/`               |
-| Freshness status     |      N/A |       N/A |      N/A | Chờ freshness report              |
+| Metric/signal | Baseline | Corrupted | Repaired | Nhận xét |
+| --- | ---: | ---: | ---: | --- |
+| `retrieval_hit_rate` | 1.0 | 0.0 | 1.0 | Corrupted corpus không truy hồi đúng ground-truth document; repair từ raw phục hồi về baseline. |
+| `mean_token_f1` | 1.0 | 0.0 | 1.0 | Answer suy giảm cùng retrieval và khôi phục sau repair. |
+| `judge_accuracy` | 1.0 | 0.0 | 1.0 | OpenRouter `o4-mini` judge xác nhận chênh lệch ba trạng thái, không dùng heuristic fallback. |
+| `mean_judge_score` | 5 | 1 | 5 | Corrupted giảm bốn điểm và repaired phục hồi toàn bộ. |
+| Quality checks | PASS | FAIL | PASS | Corrupted có 6 failed error checks; baseline/repaired không có failed error check. |
+| Freshness status | FRESH | STALE | FRESH | Corrupted có 3 stale rows; baseline/repaired có 0. |
 
 ### Kết luận từ số liệu
 
-Chưa thể xác định corruption ảnh hưởng rõ nhất hoặc kết quả khác kỳ vọng. Sau integration, tôi sẽ đối chiếu `corruption_log.json` → quality/freshness → chênh lệch metrics, rồi kiểm tra repaired dataset từ raw records có đưa signals và metrics tiến gần baseline không. Ba trạng thái phải dùng chung `data/eval/test_set.json`.
+Raw snapshot ổn định cho phép repair mà không phải gọi lại Crossref hoặc suy đoán dữ liệu đã mất. Corruption xóa ba record mới nhất và đồng thời tạo lỗi completeness, uniqueness, validity và freshness; các metrics retrieval/answer giảm từ mức tối đa xuống mức thấp nhất. Khi repair đọc lại `data/raw/crossref_records.json` và chạy cleaning/index lại, quality, freshness và bốn metrics chính đều trở về baseline.
+
+Corruption ảnh hưởng rõ nhất đến ba sample evaluation là `drop_latest_record`: `corruption_log.json` cho thấy ba document mới nhất bị xóa khỏi corpus, khiến ground-truth document IDs không thể được retrieve. Kết quả này củng cố quyết định ingestion phải giữ raw artifacts có thể audit và tái sử dụng.
 
 ## 9. Điều học được và hướng cải thiện
 
@@ -142,7 +144,7 @@ Tôi sẽ thêm `pytest` cho parser/retry, cấu hình email Crossref bằng bi�
 
 - [x] Nội dung báo cáo phản ánh đúng phần việc và mức hiểu của tôi.
 - [x] Tôi có thể giải thích luồng end-to-end, không chỉ module mình phụ trách.
-- [x] Kết luận có artifact/metric; phần chưa có số liệu ghi rõ N/A.
+- [x] Kết luận về ba trạng thái có artifact và metric thực tế để đối chiếu.
 - [x] Tôi không ghi thành công cho phần chưa kiểm chứng.
 - [x] Báo cáo không chứa `.env`, API key, token hoặc secret.
 - [x] Báo cáo này không sao chép nguyên văn báo cáo khác.

@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-06T06:14:08.929647+00:00",
+  "seed": 42,
+  "corruption_rate": 0.1,
+  "input_rows": 24,
+  "output_rows": 24,
+  "event_count": 18,
+  "counts_by_type": {
+    "drop_latest_record": 3,
+    "blank_summary": 3,
+    "inject_summary_noise": 3,
+    "truncate_title": 3,
+    "stale_published_date": 3,
+    "duplicate_record": 3
+  },
+  "events": [
+    {
+      "corruption_type": "drop_latest_record",
+      "paper_id": "10.1111/exsy.70341",
+      "field": "row",
+      "before": "present",
+      "after": "dropped"
+    },
+    {
+      "corruption_type": "drop_latest_record",
+      "paper_id": "10.2118/234689-pa",
+      "field": "row",
+      "before": "present",
+      "after": "dropped"
+    },
+    {
+      "corruption_type": "drop_latest_record",
+      "paper_id": "10.1007/s10278-026-02086-9",
+      "field": "row",
+      "before": "present",
+      "after": "dropped"
+    },
+    {
+      "corruption_type": "blank_summary",
+      "paper_id": "10.21203/rs.3.rs-10178277/v1",
+      "field": "summary",
+      "before": "Abstract Time-series foundation models and retrieval-based augmentation have recently emerged as relevant tools for financial forecasting, yet it remains unclear when explicit hist...",
+      "after": ""
+    },
+    {
+      "corruption_type": "blank_summary",
+      "paper_id": "10.36227/techrxiv.177272838.89432844/v1",
+      "field": "summary",
+      "before": "Retrieval-Augmented Generation (RAG) has emerged as a powerful paradigm for combining large language models with external knowledge sources to produce accurate, context-aware, and ...",
+      "after": ""
+    },
+    {
+      "corruption_type": "blank_summary",
+      "paper_id": "10.20944/preprints202604.0339.v1",
+      "field": "summary",
+      "before": "This study investigates a method that integrates retrieval-augmented mechanisms into large language model agents for scientific literature review generation. The approach addresses...",
+      "after": ""
+    },
+    {
+      "corruption_type": "inject_summary_noise",
+      "paper_id": "10.2196/preprints.106157",
+      "field": "summary",
+      "before": "BACKGROUND There is evidence of rapid adoption of large language models (LLMs) in undergraduate medical education, with medical students using it to support their learning. This ra...",
+      "after": "BACKGROUND There is evidence of rapid adoption of large language models (LLMs) in undergraduate medical education, with medical students using it to support their learning. This ra..."
+    },
+    {
+      "corruption_type": "inject_summary_noise",
+      "paper_id": "10.52060/juptik.v4i1.4318",
+      "field": "summary",
+      "before": "Aksesibilitas dokumen digital Fatwa Majelis Ulama Indonesia (MUI) yang terfragmentasi membuat pencarian informasi kurang efektif. Di sisi lain, sistem tanya jawab AI berbasis satu ...",
+      "after": "Aksesibilitas dokumen digital Fatwa Majelis Ulama Indonesia (MUI) yang terfragmentasi membuat pencarian informasi kurang efektif. Di sisi lain, sistem tanya jawab AI berbasis satu ..."
+    },
+    {
+      "corruption_type": "inject_summary_noise",
+      "paper_id": "10.21203/rs.3.rs-10012178/v1",
+      "field": "summary",
+      "before": "Abstract Enterprise adoption of artificial intelligence (AI) systems, including Generative AI (GenAI), Retrieval-Augmented Generation (RAG), and agentic AI, is advancing faster tha...",
+      "after": "Abstract Enterprise adoption of artificial intelligence (AI) systems, including Generative AI (GenAI), Retrieval-Augmented Generation (RAG), and agentic AI, is advancing faster tha..."
+    },
+    {
+      "corruption_type": "truncate_title",
+      "paper_id": "10.21203/rs.3.rs-9770645/v1",
+      "field": "title",
+      "before": "Adapting Large Language Models for Low-Resource Regulated Domains: A Fine-Tuning and Retrieval-Augmented Generation Approach to Insurance Information Delivery in Kenya",
+      "after": "Adapting"
+    },
+    {
+      "corruption_type": "truncate_title",
+      "paper_id": "10.21079/11681/50309",
+      "field": "title",
+      "before": "Microsoft Azure artificial intelligence / machine learning hackathon for development of retrieval-augmented generation large language model",
+      "after": "Microsof"
+    },
+    {
+      "corruption_type": "truncate_title",
+      "paper_id": "10.3390/app16052244",
+      "field": "title",
+      "before": "Hybrid Retrieval-Augmented Generation: Semantic and Structural Integration for Large Language Model Reasoning",
+      "after": "Hybrid R"
+    },
+    {
+      "corruption_type": "stale_published_date",
+      "paper_id": "10.70121/001c.158711",
+      "field": "published",
+      "before": "2026-03-15",
+      "after": "2016-03-17"
+    },
+    {
+      "corruption_type": "stale_published_date",
+      "paper_id": "10.32473/flairs.39.1.141782",
+      "field": "published",
+      "before": "2026-05-06",
+      "after": "2016-05-08"
+    },
+    {
+      "corruption_type": "stale_published_date",
+      "paper_id": "10.3390/buildings16132637",
+      "field": "published",
+      "before": "2026-07-02",
+      "after": "2016-07-04"
+    },
+    {
+      "corruption_type": "duplicate_record",
+      "paper_id": "10.54254/2753-8818/2026.dl34055",
+      "field": "paper_id",
+      "before": "1 occurrence",
+      "after": "2 occurrences"
+    },
+    {
+      "corruption_type": "duplicate_record",
+      "paper_id": "10.20944/preprints202602.0996.v1",
+      "field": "paper_id",
+      "before": "1 occurrence",
+      "after": "2 occurrences"
+    },
+    {
+      "corruption_type": "duplicate_record",
+      "paper_id": "10.63646/kpqm1958",
+      "field": "paper_id",
+      "before": "1 occurrence",
+      "after": "2 occurrences"
+    }
+  ]
+}
